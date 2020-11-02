@@ -1,0 +1,1 @@
+This repository contains ARM templates and PowerShell scripts to deploy the hub scaffolding and resources of a standard Azure Hub and Spoke topology.
