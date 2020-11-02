@@ -1,0 +1,39 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM to deploy the extension to."
+            }
+        },
+        "operatingSystem": {
+            "type": "string",
+            "metadata": {
+                "description": "OS type. Determines wich type of agent to deploy."
+            },
+            "allowedValues": [
+                "windows",
+                "linux"
+            ],
+            "defaultValue": "windows"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/Microsoft.Azure.NetworkWatcher')]",
+            "apiVersion": "2020-06-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "publisher": "Microsoft.Azure.NetworkWatcher",
+                "type": "[if(equals(parameters('operatingSystem'), 'windows'), 'NetworkWatcherAgentWindows', 'NetworkWatcherAgentLinux')]",
+                "typeHandlerVersion": "1.4",
+                "autoUpgradeMinorVersion": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "remoteVnetSub": {
+      "type": "string"
+    },
+    "remoteVnetRgp": {
+      "type": "string"
+    },
+    "remoteVnetName": {
+      "type": "string"
+    },
+    "localVnetName": {
+      "type": "string"
+    },
+    "allowForwardedTraffic": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "allowGatewayTransit": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "useRemoteGateway": {
+      "type": "bool",
+      "defaultValue": false
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2020-05-01",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "name": "[concat(parameters('localVnetName'), '/', parameters('localVnetName'), '_', parameters('remoteVnetName'), '_PEERING')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": "[parameters('allowForwardedTraffic')]",
+        "allowGatewayTransit": "[parameters('allowGatewayTransit')]",
+        "useRemoteGateways": "[parameters('useRemoteGateway')]",
+        "remoteVirtualNetwork": {
+          "id": "[resourceId(parameters('remoteVnetSub'), parameters('remoteVnetRgp'), 'Microsoft.Network/virtualNetworks', parameters('remoteVnetName'))]"
+        }
+      }
+    }
+  ]
+}

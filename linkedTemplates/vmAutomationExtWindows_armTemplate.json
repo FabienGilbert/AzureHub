@@ -1,0 +1,152 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "autoAccountSubscription": {
+            "type": "string",
+            "metadata": {
+                "description": "Id of the subscription the automation account resides in."
+            }
+        },
+        "autoAccountResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group the automation account resides in."
+            }
+        },
+        "autoAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Automation account name."
+            }
+        },
+        "VmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM to deploy the extension to."
+            }
+        },
+        "nodeConfigurationName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the DSC Configuration to apply to the VM. Can be empty."
+            }
+        },
+        "configurationMode": {
+            "type": "string",
+            "defaultValue": "ApplyAndMonitor",
+            "allowedValues": [
+                "ApplyOnly",
+                "ApplyAndMonitor",
+                "ApplyAndAutoCorrect"
+            ],
+            "metadata": {
+                "description": "DSC Configuration mode."
+            }
+        },
+        "rebootNodeIfNeeded": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "DSC agent (LCM) rebootNodeIfNeeded setting"
+            }
+        },
+        "actionAfterReboot": {
+            "type": "string",
+            "defaultValue": "ContinueConfiguration",
+            "allowedValues": [
+                "ContinueConfiguration",
+                "StopConfiguration"
+            ],
+            "metadata": {
+                "description": "DSC agent (LCM) actionAfterReboot setting. ContinueConfiguration or StopConfiguration"
+            }
+        },
+        "configurationModeFrequencyMins": {
+            "type": "int",
+            "defaultValue": 15,
+            "minValue": 15,
+            "metadata": {
+                "description": "DSC agent (LCM) configuration mode frequency setting, in minutes"
+            }
+        },
+        "refreshFrequencyMins": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+                "description": "DSC agent (LCM) refresh frequency setting, in minutes"
+            }
+        }
+    },
+    "variables": {
+        "automationId": "[resourceId(parameters('autoAccountSubscription'),parameters('autoAccountResourceGroup'),'Microsoft.Automation/automationAccounts',parameters('autoAccountName'))]",
+        "automationApiVersion": "2018-06-30"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('VmName'),'/Microsoft.Powershell.DSC')]",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.76",
+                "autoUpgradeMinorVersion": true,
+                "protectedSettings": {
+                    "Items": {
+                        "registrationKeyPrivate": "[listKeys(variables('automationId'), variables('automationApiVersion')).keys[0].Value]"
+                    }
+                },
+                "settings": {
+                    "Properties": [
+                        {
+                            "Name": "RegistrationKey",
+                            "Value": {
+                                "UserName": "PLACEHOLDER_DONOTUSE",
+                                "Password": "PrivateSettingsRef:registrationKeyPrivate"
+                            },
+                            "TypeName": "System.Management.Automation.PSCredential"
+                        },
+                        {
+                            "Name": "RegistrationUrl",
+                            "Value": "[reference(variables('automationId'), variables('automationApiVersion'), 'Full').properties.RegistrationUrl]",
+                            "TypeName": "System.String"
+                        },
+                        {
+                            "Name": "NodeConfigurationName",
+                            "Value": "[parameters('nodeConfigurationName')]",
+                            "TypeName": "System.String"
+                        },
+                        {
+                            "Name": "ConfigurationMode",
+                            "Value": "[parameters('configurationMode')]",
+                            "TypeName": "System.String"
+                        },
+                        {
+                            "Name": "ConfigurationModeFrequencyMins",
+                            "Value": "[parameters('configurationModeFrequencyMins')]",
+                            "TypeName": "System.Int32"
+                        },
+                        {
+                            "Name": "RefreshFrequencyMins",
+                            "Value": "[parameters('refreshFrequencyMins')]",
+                            "TypeName": "System.Int32"
+                        },
+                        {
+                            "Name": "RebootNodeIfNeeded",
+                            "Value": "[parameters('rebootNodeIfNeeded')]",
+                            "TypeName": "System.Boolean"
+                        },
+                        {
+                            "Name": "ActionAfterReboot",
+                            "Value": "[parameters('actionAfterReboot')]",
+                            "TypeName": "System.String"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

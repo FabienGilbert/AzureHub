@@ -1,0 +1,159 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Recovery Deployment location"
+      },
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "vaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Recovery Vault Name"
+      }
+    },
+    "recoveryvaultsku": {
+      "type": "object",
+      "metadata": {
+        "description": "Recovery Vault SKU array"
+      },
+      "defaultValue": {
+      }
+    },
+    "vmBackupPolicies": {
+      "type": "array",
+      "metadata": {
+        "description": "Array of VM backup policies including parameters 'policyName', 'scheduleRunTimes', 'timeZone', 'instantRpRetentionRangeInDays', 'dailyRetentionDurationCount', 'weeklyRetentionDurationCount'"
+      }
+    },
+    "logAnalyticsWorkspaceSubscription": {
+      "type": "string",
+      "metadata": {
+        "description": "Subscription ID of the Log Analytics Workspace the diagnostics logs get sent to"
+      },
+      "defaultValue": "[subscription().subscriptionId]"
+    },
+    "logAnalyticsWorkspaceResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group of the Log Analytics Workspace the diagnostics logs get sent to"
+      }
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name Group of the Log Analytics Workspace the diagnostics logs get sent to"
+      }
+    },
+    "logAnalyticsDestinationType":{
+      "type": "string",
+      "metadata": {
+        "description": "Log Analytics Workspace table data gets stored in"
+      },
+      "allowedValues": [
+        "Dedicated",
+        "AzureDiagnostics"
+      ],
+      "defaultValue": "Dedicated"
+    },
+    "diagnosticLogsCategories": {
+      "type": "array",
+      "metadata": {
+        "description": "Log categories that get shipped to the Log Analytics Workspace"
+      },
+      "defaultValue": [
+        "CoreAzureBackup",
+        "AddonAzureBackupJobs",
+        "AddonAzureBackupAlerts",
+        "AddonAzureBackupPolicy",
+        "AddonAzureBackupStorage",
+        "AddonAzureBackupProtectedInstance"
+      ]
+    },    
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Recovery Vault tags object"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.RecoveryServices/vaults",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('vaultName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": "[parameters('recoveryvaultsku')]",
+      "properties": {
+      }
+    },
+    {
+      "apiVersion": "2016-06-01",
+      "name": "[concat(parameters('vaultName'), '/', parameters('vmBackupPolicies')[copyIndex('policyLoop')].policyName)]",
+      "copy": {
+        "name": "policyLoop",
+        "count": "[length(parameters('vmBackupPolicies'))]"
+      },
+      "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+      "dependsOn": [
+        "[concat('Microsoft.RecoveryServices/vaults/', parameters('vaultName'))]"
+      ],
+      "location": "[parameters('location')]",
+      "properties": {
+        "backupManagementType": "AzureIaasVM",
+        "instantRpRetentionRangeInDays": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].instantRpRetentionRangeInDays]",
+        "schedulePolicy": {
+          "scheduleRunFrequency": "Daily",
+          "scheduleRunDays": null,
+          "scheduleRunTimes": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].scheduleRunTimes]",
+          "schedulePolicyType": "SimpleSchedulePolicy"
+        },
+        "retentionPolicy": {
+          "dailySchedule": {
+            "retentionTimes": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].scheduleRunTimes]",
+            "retentionDuration": {
+              "count": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].dailyRetentionDurationCount]",
+              "durationType": "Days"
+            }
+          },
+          "weeklySchedule": {
+            "retentionDuration": {
+              "count": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].weeklyRetentionDurationCount]",
+              "durationType": "Weeks"
+            },
+            "daysOfTheWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+            "retentionTimes": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].scheduleRunTimes]"
+          },
+          "retentionPolicyType": "LongTermRetentionPolicy"
+        },
+        "timeZone": "[parameters('vmBackupPolicies')[copyIndex('policyLoop')].timeZone]"
+      }
+    },
+    {
+      "type": "Microsoft.RecoveryServices/vaults/providers/diagnosticSettings",
+      "apiVersion": "2017-05-01-preview",
+      "name": "[concat(parameters('vaultName'),'/microsoft.insights/eventsToLogAnalytics')]",
+      "dependsOn": [
+        "[concat('Microsoft.RecoveryServices/vaults/', parameters('vaultName'))]"
+      ],
+      "properties": {
+        "workspaceId": "[resourceId(parameters('logAnalyticsWorkspaceSubscription'), parameters('logAnalyticsWorkspaceResourceGroup'), 'microsoft.operationalinsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+        "LogAnalyticsDestinationType": "[parameters('logAnalyticsDestinationType')]",
+        "copy": [
+          {
+            "name": "logs",
+            "count": "[length(parameters('diagnosticLogsCategories'))]",
+            "input": {
+              "category": "[parameters('diagnosticLogsCategories')[copyIndex('logs')]]",
+              "enabled": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "VNET Deployment location"
+      },
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "VNET Name"
+      }
+    },
+    "addressPrefixes": {
+      "type": "array",
+      "metadata": {
+        "description": "VNET Address Prefix(es) array"
+      }
+    },
+    "subnets": {
+      "type": "array",
+      "metadata": {
+        "description": "VNET Subnet(s) array"
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "VNET DNS Servers"
+      },
+      "defaultValue": []
+    },
+    "logAnalyticsWorkspaceSubscription": {
+      "type": "string",
+      "metadata": {
+        "description": "Subscription ID of the Log Analytics Workspace the diagnostics logs get sent to"
+      },
+      "defaultValue": "[subscription().subscriptionId]"
+    },
+    "logAnalyticsWorkspaceResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group of the Log Analytics Workspace the diagnostics logs get sent to"
+      }
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name Group of the Log Analytics Workspace the diagnostics logs get sent to"
+      }
+    },
+    "logVMProtectionAlerts": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Whether or not VM Protection Alert event logs get shipped to the Log Analytics Workspace"
+      }
+    },
+    "allMetrics": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether or not all VNET metrics get shipped to the Log Analytics Workspace"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "VNET Tags object"
+      }
+    }
+  },
+  "functions": [
+    {
+      "namespace": "vnetfunc",
+      "members": {
+        "GetResourceId": {
+          "parameters": [
+            {
+              "name": "ResourceGroup",
+              "type": "string"
+            },
+            {
+              "name": "Name",
+              "type": "string"
+            },
+            {
+              "name": "Type",
+              "type": "string"
+            }
+          ],
+          "output": {
+            "type": "object",
+            "value": {
+              "id": "[resourceId(parameters('ResourceGroup'), parameters('Type'), parameters('Name'))]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "apiVersion": "2020-05-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('vnetName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": "[parameters('addressPrefixes')]"
+        },
+        "dhcpOptions": {
+          "dnsServers": "[if(not(equals(parameters('dnsServers'), json('null'))), parameters('dnsServers'), json('null'))]"
+        },
+        "copy": [
+          {
+            "name": "subnets",
+            "count": "[length(parameters('subnets'))]",
+            "input": {
+              "name": "[parameters('subnets')[copyIndex('subnets')].SubnetName]",
+              "properties": {
+                "addressPrefix": "[parameters('subnets')[copyIndex('subnets')].addressPrefix]",
+                "networkSecurityGroup": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].NsgName, '')), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].NsgResourceGroup,parameters('subnets')[copyIndex('subnets')].NsgName, 'Microsoft.Network/networkSecurityGroups'), json('null'))]",
+                "routeTable": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].UDRName, '')), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].UdrResourceGroup,parameters('subnets')[copyIndex('subnets')].UdrName, 'Microsoft.Network/routeTables'), json('null'))]",
+                "serviceEndpoints": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].ServiceEndpoints, '')), parameters('subnets')[copyIndex('subnets')].ServiceEndpoints, json('null'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/providers/diagnosticSettings",
+      "apiVersion": "2017-05-01-preview",
+      "name": "[concat(parameters('vnetName'),'/microsoft.insights/eventsToLogAnalytics')]",
+      "dependsOn": [
+        "[parameters('vnetName')]"
+      ],
+      "properties": {
+        "workspaceId": "[resourceId(parameters('logAnalyticsWorkspaceSubscription'), parameters('logAnalyticsWorkspaceResourceGroup'), 'microsoft.operationalinsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+        "logs": [
+          {
+            "category": "VMProtectionAlerts",
+            "enabled": "[parameters('logVMProtectionAlerts')]"
+          }
+        ],
+        "metrics": [
+          {
+            "category": "AllMetrics",
+            "enabled": "[parameters('allMetrics')]"
+          }
+        ]
+      }
+    }
+  ]
+}

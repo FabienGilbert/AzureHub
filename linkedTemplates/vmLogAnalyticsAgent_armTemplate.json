@@ -1,0 +1,66 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceSubscription": {
+            "type": "string",
+            "metadata": {
+                "description": "Id of the subscription the log analytics workspace resides in."
+            }
+        },
+        "workspaceResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group the log analytics workspace resides in."
+            }
+        },
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the log analytics workspace resides in."
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM to deploy the extension to."
+            }
+        },
+        "operatingSystem": {
+            "type": "string",
+            "metadata": {
+                "description": "OS type. Determines wich type of agent to deploy."
+            },
+            "allowedValues": [
+                "windows",
+                "linux"
+            ],
+            "defaultValue": "windows"
+        }
+    },
+    "variables": {
+        "workspaceId": "[resourceId(parameters('workspaceSubscription'),parameters('workspaceResourceGroup'),'Microsoft.OperationalInsights/workspaces',parameters('workspaceName'))]",
+        "LogAnalyticsApiVersion": "2015-03-20"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/Microsoft.EnterpriseCloud.Monitoring')]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "[if(equals(parameters('operatingSystem'), 'windows'), 'MicrosoftMonitoringAgent', 'OmsAgentForLinux')]",
+                "typeHandlerVersion": "[if(equals(parameters('operatingSystem'), 'windows'), '1.0', '1.13')]",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(variables('workspaceId'), variables('LogAnalyticsApiVersion'), 'Full').properties.customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(variables('workspaceId'), variables('LogAnalyticsApiVersion')).primarySharedKey]"
+                }
+            }
+        }
+    ]
+}

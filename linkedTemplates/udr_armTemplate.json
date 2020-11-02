@@ -1,0 +1,58 @@
+{ 
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {          
+      "location": {
+          "type": "string",
+          "metadata": {
+              "description": "NSG Deployment location"
+          },
+          "defaultValue": "[resourceGroup().location]"
+      },      
+      "routeTableName": {
+          "type": "string",
+          "metadata": {
+              "description": "UDR Name"
+          }
+      },
+      "routes": {
+          "type": "array",
+          "metadata": {
+              "description": "UDR Routes array"
+          },
+          "defaultValue": []
+      },
+      "tags": {
+        "type": "object",
+        "metadata": {
+            "description": "UDR tags object"
+        }
+      }
+    },
+    "resources": [
+        {
+          "type": "Microsoft.Network/routeTables",
+          "name": "[parameters('routeTableName')]",
+          "apiVersion": "2019-11-01",
+          "location": "[parameters('location')]",                    
+          "tags": "[parameters('tags')]",
+          "properties": {
+            "copy": [
+                {
+                  "name": "routes",
+                  "count": "[length(parameters('routes'))]",
+                  "input": {
+                    "name": "[parameters('routes')[copyIndex('routes')].Name]",
+                    "properties": {
+                        "addressPrefix": "[parameters('routes')[copyIndex('routes')].addressPrefix]",
+                        "nextHopType": "[parameters('routes')[copyIndex('routes')].nextHopType]",
+                        "nextHopIpAddress": "[if(not(equals(parameters('routes')[copyIndex('routes')].nextHopIpAddress, '')), parameters('routes')[copyIndex('routes')].nextHopIpAddress, json('null'))]"                        
+                    }
+                  }
+                }
+            ]
+          }
+        }
+    ]
+}
+    

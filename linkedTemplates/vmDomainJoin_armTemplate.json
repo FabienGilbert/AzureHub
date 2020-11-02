@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM to deploy the extension to."
+            }
+        },
+        "domainToJoin": {
+            "type": "string",
+            "metadata": {
+                "description": "The FQDN of the AD domain"
+            }
+        },
+        "domainUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of the account on the domain"
+            }
+        },
+        "domainPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password of the account on the domain"
+            }
+        },
+        "ouPath": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: \"OU=testOU; DC=domain; DC=Domain; DC=com\""
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2019-12-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('VmName'),'/joindomain')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "JsonADDomainExtension",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "Name": "[parameters('domainToJoin')]",
+                    "OUPath": "[parameters('ouPath')]",
+                    "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+                    "Restart": "true",
+                    "Options": "3"
+                },
+                "protectedSettings": {
+                    "Password": "[parameters('domainPassword')]"
+                }
+            }
+        }
+    ]
+}

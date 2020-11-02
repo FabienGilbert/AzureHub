@@ -1,0 +1,355 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "location": {
+        "type": "string",
+        "metadata": {
+          "description": "VM deployment location"
+        },
+        "defaultValue": "[resourceGroup().location]"
+      },
+        "VmName": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Name"
+            }
+        },
+        "VmSize": {
+            "type": "string",
+            "defaultValue": "standard_b1ms",
+            "metadata": {
+                "description": "VM Size"
+            }
+        },
+        "ImagePublisher": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image Publisher, for instance 'MicrosoftWindowsServer'"
+            }
+        },
+        "ImageOffer": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image Offer, for instance 'WindowsServer'"
+            }
+        },
+        "ImageSKU": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Image SKU, for intance '2019-Datacenter'"
+            }
+        },
+        "ImageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "VM Image version"
+            }
+        },
+        "OSDiskType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Premium_LRS",
+                "StandardSSD_LRS"
+            ],
+            "metadata": {
+                "description": "VM OS Disk Type"
+            }
+        },
+        "OSDiskCache": {
+            "type": "string",
+            "defaultValue": "ReadWrite",
+            "allowedValues": [
+                "none",
+                "ReadOnly",
+                "ReadWrite"
+            ],
+            "metadata": {
+                "description": "VM OS Disk Caching Setting"
+            }
+        },
+        "OSDiskSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "VM OS Disk Size. Defaults to image size."
+            }
+        },
+        "VmDataDisks": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "VM Data Disk(s) array. Defaults to none."
+            }
+        },
+        "VNETResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group of the VNET to attach the VM NIC to"
+            }
+        },
+        "VNETName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET to attach the VM NIC to"
+            }
+        },
+        "VmSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET Subnet to attach the VM NIC to"
+            }
+        },
+        "VmIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "VM NIC Static Private IP Address. Defaults to Dynamic."
+            },
+            "defaultValue": ""
+        },
+        "VmPublicIpResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Resource Group of the Public IP address to attach the NIC. Defaults to none."
+            }
+        },
+        "VmPublicIpName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the Public IP address to attach the NIC. Defaults to none."
+            }
+        },
+        "localAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Local Administrator Username"
+            }
+        },
+        "localAdminPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "VM Local Administrator Password. Defaults to Public Key."
+            }
+        },
+        "localAdminPublicKey": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "VM Local Administrator Public Key. Defaults to Password."
+            }
+        },
+        "DiagnosticStorageAccount": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the storage account for boot diagnostic logs."
+            }
+        },
+        "dnsServers": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "VM NIC DNS Servers. Defaults to VNET's DNS servers."
+            }
+        },
+        "availabilitySetName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Availability Set to attach the VM to. Defaults to none."
+            }
+        },
+        "PlanInfoRequired": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether or not to include plan information."
+            }
+        },
+        "osProfilecustomData": {
+            "type": "string",
+            "metadata": {
+                "description": "OS Profile custom data. Defaults to none."
+            },
+            "defaultValue": ""
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "VM Tags object. Defaults to none."
+            },
+            "defaultValue": {}
+        }
+    },
+    "variables": {
+        "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+                "publicKeys": [
+                    {
+                        "path": "[concat('/home/', parameters('localAdminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('localAdminPublicKey')]"
+                    }
+                ]
+            }
+        },
+        "copy": [
+            {
+                "name": "dataDisks",
+                "count": "[if(equals(parameters('VmDataDisks'),json('[]')), 1, length(parameters('VmDataDisks')))]",
+                "input": {
+                    "caching": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), parameters('VmDataDisks')[copyIndex('dataDisks')].caching)]",
+                    "diskSizeGB": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), parameters('VmDataDisks')[copyIndex('dataDisks')].sizeGb)]",
+                    "lun": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), copyindex('dataDisks'))]",
+                    "name": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), if(contains(parameters('VmDataDisks')[copyIndex('dataDisks')], 'name'), parameters('VmDataDisks')[copyIndex('dataDisks')].name, concat(parameters('VmName'), '-dataDisk-', padLeft(add(copyIndex('dataDisks'),1),2,'0'))))]",
+                    "createOption": "Empty",
+                    "managedDisk": {
+                        "storageAccountType": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), parameters('VmDataDisks')[copyIndex('dataDisks')].type)]"
+                    }
+                }
+            }
+        ]
+    },
+    "functions": [
+        {
+            "namespace": "vmfunc",
+            "members": {
+                "GetPlanInfo": {
+                    "parameters": [
+                        {
+                            "name": "PlanPublisher",
+                            "type": "string"
+                        },
+                        {
+                            "name": "PlanProduct",
+                            "type": "string"
+                        },
+                        {
+                            "name": "PlanName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "object",
+                        "value": {
+                            "name": "[parameters('PlanName')]",
+                            "publisher": "[parameters('PlanPublisher')]",
+                            "product": "[parameters('PlanProduct')]"
+                        }
+                    }
+                },
+                "GetResourceId": {
+                    "parameters": [
+                        {
+                            "name": "ResourceGroup",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Type",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "object",
+                        "value": {
+                            "id": "[resourceId(parameters('ResourceGroup'), parameters('Type'), parameters('Name'))]"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "resources": [
+        {
+            "name": "[concat(parameters('VmName'),'-NIC-001')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[parameters('location')]",
+            "apiVersion": "2019-09-01",
+            "tags": "[if(equals(parameters('tags'), json('{}')), json('null'), parameters('tags'))]",
+            "dependsOn": [],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": "[if(not(equals(parameters('VmPublicIpName'), '')), vmfunc.GetResourceId(parameters('VmPublicIpResourceGroup'),parameters('VmPublicIpName'),'Microsoft.Network/publicIPAddresses/'), json('null'))]",
+                            "privateIPAllocationMethod": "[if(equals(parameters('VmIpAddress'), ''),'Dynamic','Static')]",
+                            "privateIPAddress": "[if(equals(parameters('VmIpAddress'), ''), json('null'), parameters('VmIpAddress'))]",
+                            "subnet": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('VNETResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('VNETName'),'/subnets/',parameters('VmSubnet'))]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": "[if(equals(parameters('dnsServers'), json('[]')), json('null'), parameters('dnsServers'))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2019-12-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('VmName')]",
+            "location": "[parameters('location')]",
+            "tags": "[if(equals(parameters('tags'), json('{}')), json('null'), parameters('tags'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('VmName'),'-NIC-001'))]"
+            ],
+            "properties": {
+                "availabilitySet": "[if(equals(parameters('availabilitySetName'), ''), json('null'), vmfunc.GetResourceId(resourceGroup().name,parameters('availabilitySetName'),'Microsoft.Compute/availabilitySets'))]",
+                "hardwareProfile": {
+                    "vmSize": "[parameters('VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('VmName')]",
+                    "adminUsername": "[parameters('localAdminUsername')]",
+                    "adminPassword": "[if(equals(parameters('localAdminPassword'), ''), json('null'), parameters('localAdminPassword'))]",
+                    "linuxConfiguration": "[if(equals(parameters('localAdminPublicKey'), ''), json('null'), variables('linuxConfiguration'))]",
+                    "customData": "[if(equals(parameters('osProfilecustomData'), ''), json('null'), parameters('osProfilecustomData'))]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('ImagePublisher')]",
+                        "offer": "[parameters('ImageOffer')]",
+                        "sku": "[parameters('ImageSKU')]",
+                        "version": "[parameters('ImageVersion')]"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('VmName'), '-osdisk')]",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('OSDiskType')]"
+                        },
+                        "caching": "[parameters('OSDiskCache')]",
+                        "diskSizeGB": "[if(equals(parameters('OSDiskSize'),''), json('null'), parameters('OSDiskSize'))]",
+                        "createOption": "FromImage"
+                    },
+                    "datadisks": "[if(equals(parameters('VmDataDisks'),json('[]')), json('null'), variables('dataDisks'))]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('VmName'),'-NIC-001'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "True",
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('DiagnosticStorageAccount')), '2015-06-15').primaryEndpoints.blob)]"
+                    }
+                }
+            },
+            "plan": "[if(equals(parameters('PlanInfoRequired'), bool('true')), vmfunc.GetPlanInfo(parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSKU')), json('null'))]",
+            "resources": []
+        }
+    ]
+}

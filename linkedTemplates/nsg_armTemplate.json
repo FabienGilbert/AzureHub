@@ -1,0 +1,121 @@
+{ 
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {          
+      "location": {
+          "type": "string",
+          "metadata": {
+              "description": "NSG Deployment location"
+          },
+          "defaultValue": "[resourceGroup().location]"
+      },      
+      "networkSecurityGroupName": {
+          "type": "string",
+          "metadata": {
+              "description": "NSG Name"
+          }
+      },
+      "securityRules": {
+          "type": "array",
+          "metadata": {
+              "description": "NSG Security Rules array"
+          }
+      },
+      "logAnalyticsWorkspaceSubscription": {
+          "type": "string",
+          "metadata": {
+              "description": "Subscription ID of the Log Analytics Workspace the diagnostics logs are sent to"
+          },
+          "defaultValue": "[subscription().subscriptionId]"
+      },
+      "logAnalyticsWorkspaceResourceGroup": {
+          "type": "string",
+          "metadata": {
+              "description": "Resource Group of the Log Analytics Workspace the diagnostics logs are sent to"
+          }
+      },
+      "logAnalyticsWorkspaceName": {
+          "type": "string",
+          "metadata": {
+              "description": "Name Group of the Log Analytics Workspace the diagnostics logs are sent to"
+          }
+      },
+      "logNetworkSecurityGroupEvent": {
+          "type": "bool",
+          "defaultValue": true,
+          "metadata": {
+              "description": "Whether or not NSG event logs will be shipped to the Log Analytics Workspace"
+          }
+      },
+      "logNetworkSecurityGroupRuleCounter": {
+          "type": "bool",
+          "defaultValue": false,
+          "metadata": {
+              "description": "Whether or not NSG rule counters will be shipped to the Log Analytics Workspace"
+          }
+      },
+      "tags": {
+        "type": "object",
+        "metadata": {
+            "description": "NSG tags object"
+        }
+      }
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-05-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroupName')]",
+            "location": "[parameters('location')]",                    
+            "tags": "[parameters('tags')]",
+            "properties": {
+              "copy": [
+                {
+                    "name": "securityRules",
+                    "count": "[length(parameters('securityRules'))]",
+                    "input": {
+                        "name": "[parameters('securityRules')[copyIndex('securityRules')].name]",
+                        "properties": {
+                            "description": "[parameters('securityRules')[copyIndex('securityRules')].description]",
+                            "protocol": "[parameters('securityRules')[copyIndex('securityRules')].protocol]",
+                            "sourcePortRange": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].sourcePortRange, json('null'))), parameters('securityRules')[copyIndex('securityRules')].sourcePortRange, json('null'))]",
+                            "sourcePortRanges": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].sourcePortRanges, json('null'))), parameters('securityRules')[copyIndex('securityRules')].sourcePortRanges, json('null'))]",
+                            "destinationPortRange": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].destinationPortRange, json('null'))), parameters('securityRules')[copyIndex('securityRules')].destinationPortRange, json('null'))]",
+                            "destinationPortRanges": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].destinationPortRanges, json('null'))), parameters('securityRules')[copyIndex('securityRules')].destinationPortRanges, json('null'))]",
+                            "sourceAddressPrefix": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].sourceAddressPrefix, json('null'))), parameters('securityRules')[copyIndex('securityRules')].sourceAddressPrefix, json('null'))]",
+                            "sourceAddressPrefixes": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].sourceAddressPrefixes, json('null'))), parameters('securityRules')[copyIndex('securityRules')].sourceAddressPrefixes, json('null'))]",
+                            "destinationAddressPrefix": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].destinationAddressPrefix, json('null'))), parameters('securityRules')[copyIndex('securityRules')].destinationAddressPrefix, json('null'))]",
+                            "destinationAddressPrefixes": "[if(not(equals(parameters('securityRules')[copyIndex('securityRules')].destinationAddressPrefixes, json('null'))), parameters('securityRules')[copyIndex('securityRules')].destinationAddressPrefixes, json('null'))]",                                
+                            "access": "[parameters('securityRules')[copyIndex('securityRules')].access]",
+                            "priority": "[parameters('securityRules')[copyIndex('securityRules')].priority]",
+                            "direction": "[parameters('securityRules')[copyIndex('securityRules')].direction]"
+                        }
+                    }
+                }
+              ]                 
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings",
+            "apiVersion": "2017-05-01-preview",
+            "name": "[concat(parameters('networkSecurityGroupName'),'/microsoft.insights/eventsToLogAnalytics')]",
+            "dependsOn": [
+                "[parameters('networkSecurityGroupName')]"
+            ],
+            "properties": {
+              "workspaceId": "[resourceId(parameters('logAnalyticsWorkspaceSubscription'), parameters('logAnalyticsWorkspaceResourceGroup'), 'microsoft.operationalinsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+              "logs": [
+                {
+                  "category": "NetworkSecurityGroupEvent",
+                  "enabled": "[parameters('logNetworkSecurityGroupEvent')]"
+                },
+                {
+                  "category": "NetworkSecurityGroupRuleCounter",
+                  "enabled": "[parameters('logNetworkSecurityGroupRuleCounter')]"
+                }
+              ]
+            }
+        } 
+    ]
+}
+    

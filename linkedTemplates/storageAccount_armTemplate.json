@@ -1,0 +1,103 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "StorageAccountName": {
+            "type": "string"
+        },
+        "StorageAccountTier": {
+            "type": "string",
+            "defaultValue": "Cool",
+            "allowedValues": [
+                "Cool",
+                "Hot"
+            ]
+        },
+        "StorageAccountKind": {
+            "type": "string",
+            "defaultValue": "StorageV2",
+            "allowedValues": [
+                "Storage",
+                "StorageV2"
+            ]
+        },
+        "StorageAccountSku": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Premium_LRS"
+            ]
+        },
+        "networkAclDefaultAction": {
+            "type": "string",
+            "defaultValue": "allow",
+            "allowedValues": [
+                "allow",
+                "deny"
+            ]
+        },
+        "virtualNetworkAcls": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "networkAclSourceIpAddresses": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "networkAclBypass": {
+            "type": "string",
+            "defaultValue": "AzureServices",
+            "allowedValues": [
+                "None",
+                "AzureServices"
+            ]
+        },
+        "tags": {
+            "type": "object"
+        }
+    },
+    "variables": {
+        "copy": [
+            {
+                "name": "virtualNetworkRules",
+                "count": "[if(equals(parameters('virtualNetworkAcls'),json('[]')), 1, length(parameters('virtualNetworkAcls')))]",
+                "input": {
+                    "id": "[if(equals(parameters('virtualNetworkAcls'),json('[]')), json('null'), concat('/subscriptions/',parameters('virtualNetworkAcls')[copyIndex('virtualNetworkRules')].VnetSubscriptionId,'/resourceGroups/',parameters('virtualNetworkAcls')[copyIndex('virtualNetworkRules')].VnetResourceGroup,'/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkAcls')[copyIndex('virtualNetworkRules')].VnetName,'/subnets/',parameters('virtualNetworkAcls')[copyIndex('virtualNetworkRules')].VnetSubnet))]",
+                    "action": "[if(equals(parameters('virtualNetworkAcls'),json('[]')), json('null'), parameters('virtualNetworkAcls')[copyIndex('virtualNetworkRules')].action)]"
+                }
+            },
+            {
+                "name": "ipRules",
+                "count": "[if(equals(parameters('networkAclSourceIpAddresses'),json('[]')), 1, length(parameters('networkAclSourceIpAddresses')))]",
+                "input": {
+                    "value": "[if(equals(parameters('networkAclSourceIpAddresses'),json('[]')), json('null'), parameters('networkAclSourceIpAddresses')[copyIndex('ipRules')])]",
+                    "action": "[if(equals(parameters('networkAclSourceIpAddresses'),json('[]')), json('null'), 'Allow')]"
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('StorageAccountName')]",
+            "apiVersion": "2019-06-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('StorageAccountSku')]"
+            },
+            "kind": "[parameters('StorageAccountKind')]",
+            "properties": {
+                "accessTier": "[parameters('StorageAccountTier')]",
+                "networkAcls": {
+                    "virtualNetworkRules": "[if(equals(parameters('virtualNetworkAcls'),json('[]')), json('null'), variables('virtualNetworkRules'))]",
+                    "ipRules": "[if(equals(parameters('networkAclSourceIpAddresses'),json('[]')), json('null'), variables('ipRules'))]",
+                    "bypass": "[parameters('networkAclBypass')]",
+                    "defaultAction": "[parameters('networkAclDefaultAction')]"
+                }
+            }
+        }
+    ]
+}
