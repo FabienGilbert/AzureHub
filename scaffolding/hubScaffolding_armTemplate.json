@@ -52,7 +52,7 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-04-01-preview",
-      "name": "[concat('mgpRbac',guid(variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId))]",
+      "name": "[guid(variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId)]",
       "copy": {
         "name": "mgpRbacLoop",
         "count": "[length(variables('managementGroupRbac'))]"
