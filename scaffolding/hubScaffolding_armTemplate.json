@@ -188,19 +188,36 @@
       }
     },
     {
-      "name": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName]",
-      "type": "Microsoft.Authorization/policyAssignments",
+      "name": "[concat('mgpPolicy_', guid(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName, variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID))]",
+      "type": "Microsoft.Resources/deployments",
       "copy": {
         "name": "mgpPolicyLoop",
         "count": "[length(variables('managementGroupPolicy'))]"
       },
-      "apiVersion": "2019-09-01",
+      "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
+      "scope": "[concat('Microsoft.Management/managementGroups/', parameters('mgpName'))]",
       "properties": {
-        "scope": "[concat('Microsoft.Management/managementGroups/', parameters('mgpName'))]",
-        "policyDefinitionId": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID]",
-        "parameters": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters)]",
-        "notScopes": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes)]"
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/policyAssignments",
+              "name": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName]",
+              "apiVersion": "2019-09-01",
+              "properties": {
+                "scope": "[concat('Microsoft.Management/managementGroups/', parameters('mgpName'))]",
+                "policyDefinitionId": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID]",
+                "parameters": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters)]",
+                "notScopes": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes)]"
+              }
+            }
+          ]
+        }
       }
     }
   ]
