@@ -20,3 +20,11 @@ steps:
     ScriptPath: scaffolding/createMgp.ps1
     ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -ManagementGroupNamePrefix $(ManagementGroupNamePrefix) -SubscriptionNamePrefix $(SubscriptionNamePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix) -ParentMgpResourceId $(ParentMgpResourceId)'
     azurePowerShellVersion: LatestVersion
+
+- task: AzurePowerShell@5
+  displayName: 'AAD Group Creation'
+  inputs:
+    azureSubscription: 'FGT-ROOT-MGP-OWNR'
+    ScriptPath: scaffolding/createAadGroups.ps1
+    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -ManagementGroupNamePrefix $(ManagementGroupNamePrefix) -SubscriptionNamePrefix $(SubscriptionNamePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)'
+    azurePowerShellVersion: LatestVersion
