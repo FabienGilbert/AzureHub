@@ -2,6 +2,12 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the location for the deployment, resource group and resources."
+      }
+    },
     "mgpName": {
       "type": "string",
       "metadata": {
@@ -50,17 +56,34 @@
   },
   "resources": [
     {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-04-01-preview",
-      "name": "[guid(variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId)]",
+      "name": "[concat('mgpRBAC_', variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionName)]",
+      "type": "Microsoft.Resources/deployments",
       "copy": {
         "name": "mgpRbacLoop",
         "count": "[length(variables('managementGroupRbac'))]"
       },
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
+      "scope": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'))]",
       "properties": {
-        "scope": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'))]",
-        "roleDefinitionId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId]",
-        "principalId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId]"
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-04-01-preview",
+              "name": "[guid(variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId)]",
+              "properties": {
+                "roleDefinitionId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId]",
+                "principalId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId]"
+              }
+            }
+          ]
+        }
       }
     }
   ]
