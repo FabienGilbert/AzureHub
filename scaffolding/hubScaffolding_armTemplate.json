@@ -188,7 +188,7 @@
       }
     },
     {
-      "name": "[concat('mgpPolicy_', guid(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName, variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID))]",
+      "name": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName]",
       "type": "Microsoft.Authorization/policyAssignments",
       "copy": {
         "name": "mgpPolicyLoop",
