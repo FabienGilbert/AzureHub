@@ -210,7 +210,7 @@
               "name": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName]",
               "apiVersion": "2019-09-01",
               "properties": {
-                "scope": "[concat('Microsoft.Management/managementGroups/', parameters('mgpName'))]",
+                "scope": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'))]",
                 "policyDefinitionId": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID]",
                 "parameters": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters)]",
                 "notScopes": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes)]"
