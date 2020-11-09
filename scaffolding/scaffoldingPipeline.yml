@@ -34,6 +34,6 @@ steps:
   inputs:
     deploymentScope: 'Management Group'
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
-    location: 'EastUS2'
+    location: '$(location)'
     csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
     overrideParameters: '-mgpName $(mgpName) -mgpRbacReaderGroupId $(mgpRbacReaderGroupId) -mgpRbacContributorGroupId $(mgpRbacContributorGroupId) -mgpRbacOwnerGroupId $(mgpRbacOwnerGroupId)'
