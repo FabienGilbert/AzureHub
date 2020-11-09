@@ -36,4 +36,4 @@ steps:
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
     location: '$(location)'
     csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
-    overrideParameters: '-mgpName $(mgpName) -mgpRbacReaderGroupId $(mgpRbacReaderGroupId) -mgpRbacContributorGroupId $(mgpRbacContributorGroupId) -mgpRbacOwnerGroupId $(mgpRbacOwnerGroupId)'
+    overrideParameters: '-location $(location) -mgpName $(mgpName) -mgpRbacReaderGroupId $(mgpRbacReaderGroupId) -mgpRbacContributorGroupId $(mgpRbacContributorGroupId) -mgpRbacOwnerGroupId $(mgpRbacOwnerGroupId)'
