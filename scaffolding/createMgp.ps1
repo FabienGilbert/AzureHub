@@ -44,7 +44,7 @@ $subscriptionName = ($EnterprisePrefix + "-" + $SubscriptionNamePrefix + "-" + $
 
 # Check for Management Group existence
 $mgp = $null
-$mgp = Get-AzManagementGroup | Where-Object -Property DisplayName -EQ -Value $managementGroupName
+$mgp = Get-AzManagementGroup -Expand $ParentMgpResourceId.Split("/")[-1] | Select-Object -ExpandProperty Children | Where-Object -Property DisplayName -EQ -Value $managementGroupName   
 # Create Management Group if it doesn't exist
 if ($mgp) {
     Write-Output ("Management Group DisplayName " + [char]34 + $managementGroupName + [char]34 + " already exists with Name " + [char]34 + $mgp.Name + [char]34 + ".")
