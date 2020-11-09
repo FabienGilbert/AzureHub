@@ -52,6 +52,107 @@
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
         "principalId": "[parameters('mgpRbacOwnerGroupId')]"
       }
+    ],
+    "managementGroupPolicy": [
+      {
+        "policyAssignmentName": "Key vaults firewall",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/ea4d6841-2173-4317-9747-ff522a45120f",
+        "notScopes": [],
+        "parameters": []
+      },
+      {
+        "policyAssignmentName": "Storage account firewall",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/60d21c4f-21a3-4d94-85f4-b924e6aeeda4",
+        "notScopes": [],
+        "parameters": []
+      },
+      {
+        "policyAssignmentName": "Subnets require NSG",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/e71308d3-144b-4262-b144-efdc3cc90517",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "Resources must be in US",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
+        "notScopes": [],
+        "parameters": {
+          "listOfAllowedLocations": {
+            "value": [ "eastus", "eastus2", "eastusstage", "eastus2stage", "centralus", "centralusstage", "northcentralus", "northcentralusstage", "southcentralus", "southcentralusstage", "unitesstates", "westcentralus", "westus", "westusstage", "westus2", "westus2stage" ]
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "NIC should not have PIPs",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114",
+        "notScopes": [],
+        "parameters": {}
+      },
+      {
+        "policyAssignmentName": "Disk encryption for VM",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/0961003e-5a0a-4549-abde-af6a37f2724d",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "Required Diag KeyVault",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/cf820ca0-f99e-4f3e-84fb-66e913812d21",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          },
+          "requiredRetentionDays": {
+            "value": "365"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "KeyVault Obj Recoverable",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/0b60c0b2-2dc2-4e1c-b5c9-abbed971de53",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "Audit"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "Audit Diag Log for NSG",
+        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/6bca5909-5e77-4320-a14c-688e24486acc",
+        "notScopes": [],
+        "parameters": {
+        }
+      },
+      {
+        "policyAssignmentName": "Audit Diag Log for RSV",
+        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/dd7bac2f-03b1-404b-9d0d-1c66a28f2b3b",
+        "notScopes": [],
+        "parameters": {
+        }
+      },
+      {
+        "policyAssignmentName": "Audit Diag Log for VNet",
+        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/f583944f-b69e-477e-8f45-0f768f564a38",
+        "notScopes": [],
+        "parameters": {
+        }
+      },
+      {
+        "policyAssignmentName": "Audit Diag Log KeyVault",
+        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/c7b08c36-395b-47b8-beaf-56f62306cb57",
+        "notScopes": [],
+        "parameters": {
+        }
+      }
     ]
   },
   "resources": [
@@ -84,6 +185,22 @@
             }
           ]
         }
+      }
+    },
+    {
+      "name": "[concat('mgpPolicy_', guid(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName, variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID))]",
+      "type": "Microsoft.Authorization/policyAssignments",
+      "copy": {
+        "name": "mgpPolicyLoop",
+        "count": "[length(variables('managementGroupPolicy'))]"
+      },
+      "apiVersion": "2019-09-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "scope": "[concat('Microsoft.Management/managementGroups/', parameters('mgpName'))]",
+        "policyDefinitionId": "[variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID]",
+        "parameters": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters)]",
+        "notScopes": "[if(equals(variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes,json('[]')), json('null'), variables('managementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes)]"
       }
     }
   ]
