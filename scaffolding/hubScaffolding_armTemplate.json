@@ -2,10 +2,10 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "subscriptionId": {
+    "mgpName": {
       "type": "string",
       "metadata": {
-        "description": "Specify the Hub subscription ID."
+        "description": "Management Group Id."
       }
     },
     "mgpRbacReaderGroupId": {
@@ -33,17 +33,17 @@
     "managementGroupRbac": [
       {
         "roleDefinitionName": "Reader",
-        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
         "principalId": "[parameters('mgpRbacReaderGroupId')]"
       },
       {
         "roleDefinitionName": "Contributor",
-        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "principalId": "[parameters('mgpRbacContributorGroupId')]"
       },
       {
         "roleDefinitionName": "Owner",
-        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
         "principalId": "[parameters('mgpRbacOwnerGroupId')]"
       }
     ]

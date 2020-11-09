@@ -22,9 +22,18 @@ steps:
     azurePowerShellVersion: LatestVersion
 
 - task: AzurePowerShell@5
-  displayName: 'AAD Group Creation'
+  displayName: 'AAD Groups Creation'
   inputs:
     azureSubscription: 'FGT-ROOT-MGP-OWNR'
     ScriptPath: scaffolding/createAadGroups.ps1
     ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -ManagementGroupNamePrefix $(ManagementGroupNamePrefix) -SubscriptionNamePrefix $(SubscriptionNamePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)'
     azurePowerShellVersion: LatestVersion
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'Hub Scaffolding Deployment'
+  inputs:
+    deploymentScope: 'Management Group'
+    azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
+    location: 'EastUS2'
+    csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
+    overrideParameters: '-mgpName $(mgpName) -mgpRbacReaderGroupId $(mgpRbacReaderGroupId) -mgpRbacContributorGroupId $(mgpRbacContributorGroupId) -mgpRbacOwnerGroupId $(mgpRbacOwnerGroupId)'
