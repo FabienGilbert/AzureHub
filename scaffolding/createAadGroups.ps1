@@ -68,9 +68,14 @@ $aadGroups = ("[
 #Create Azure AD Groups and get their Object Id
 foreach ($aadGroup in ($aadGroups | Where-Object { !($_.groupObjectId) })) {
     #Get existing Azure AD Group
+    Write-Output ("Getting Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + "...")
     $grp = $null
     $grp = Get-AzADGroup -DisplayName $aadGroup.groupName
-    if (!($grp)) {
+    if ($grp) {
+        Write-Output ("Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + " already exists.")
+    }
+    else{        
+        Write-Output ("Creating Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + "...")
         $grp = New-AzADGroup -DisplayName $aadGroup.groupName -MailNickname $aadGroup.groupName -Description $aadGroup.groupDescription
     }
     if ($grp.Id) {
