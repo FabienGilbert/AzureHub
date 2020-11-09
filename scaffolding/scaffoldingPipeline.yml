@@ -33,7 +33,6 @@ steps:
   displayName: 'Hub Scaffolding Deployment'
   inputs:
     deploymentScope: 'Management Group'
-    managementGroupName: '$(mgpName)'
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
     location: '$(location)'
     csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
