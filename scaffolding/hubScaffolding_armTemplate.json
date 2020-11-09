@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "subscriptionId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the Hub subscription ID."
+      }
+    },
+    "mgpRbacReaderGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Reader access to the Management Group"
+      }
+    },
+    "mgpRbacContributorGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Contributor access to the Management Group"
+      }
+    },
+    "mgpRbacOwnerGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Owner access to the Management Group"
+      }
+    }
+  },
+  "variables": {
+    "linkedTemplateContainerUri": "https://dosecautostors0101.blob.core.windows.net/armtemplates",
+    "linkedTemplateContainerSasToken": "?sv=2019-02-02&sr=c&sig=xRnApTk7FAk9ziLU1XvwM61V2rNah7ehPty6UTRUPjs%3D&st=2020-06-19T14%3A56%3A17Z&se=2023-06-19T14%3A56%3A17Z&sp=r",
+    "managementGroupRbac": [
+      {
+        "roleDefinitionName": "Reader",
+        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "principalId": "[parameters('mgpRbacReaderGroupId')]"
+      },
+      {
+        "roleDefinitionName": "Contributor",
+        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalId": "[parameters('mgpRbacContributorGroupId')]"
+      },
+      {
+        "roleDefinitionName": "Owner",
+        "roleDefinitionId": "[concat('/subscriptions/', parameters('subscriptionId'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+        "principalId": "[parameters('mgpRbacOwnerGroupId')]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-04-01-preview",
+      "name": "[concat('mgpRbac',guid(variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId))]",
+      "copy": {
+        "name": "mgpRbacLoop",
+        "count": "[length(variables('managementGroupRbac'))]"
+      },
+      "properties": {
+        "roleDefinitionId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId]",
+        "principalId": "[variables('managementGroupRbac')[copyIndex('mgpRbacLoop')].principalId]"
+      }
+    }
+  ]
+}
