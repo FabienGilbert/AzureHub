@@ -124,34 +124,6 @@
             "value": "Audit"
           }
         }
-      },
-      {
-        "policyAssignmentName": "Audit Diag Log for NSG",
-        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/6bca5909-5e77-4320-a14c-688e24486acc",
-        "notScopes": [],
-        "parameters": {
-        }
-      },
-      {
-        "policyAssignmentName": "Audit Diag Log for RSV",
-        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/dd7bac2f-03b1-404b-9d0d-1c66a28f2b3b",
-        "notScopes": [],
-        "parameters": {
-        }
-      },
-      {
-        "policyAssignmentName": "Audit Diag Log for VNet",
-        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/f583944f-b69e-477e-8f45-0f768f564a38",
-        "notScopes": [],
-        "parameters": {
-        }
-      },
-      {
-        "policyAssignmentName": "Audit Diag Log KeyVault",
-        "policyDefinitionID": "/providers/Microsoft.Management/managementGroups/f45bdcfe-3637-4d84-b88b-98b6f9a684f9/providers/Microsoft.Authorization/policyDefinitions/c7b08c36-395b-47b8-beaf-56f62306cb57",
-        "notScopes": [],
-        "parameters": {
-        }
       }
     ]
   },
