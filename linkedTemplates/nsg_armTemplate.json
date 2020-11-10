@@ -19,7 +19,8 @@
           "type": "array",
           "metadata": {
               "description": "NSG Security Rules array"
-          }
+          },
+          "defaultValue": []
       },
       "logAnalyticsWorkspaceSubscription": {
           "type": "string",
