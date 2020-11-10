@@ -32,17 +32,17 @@ $managementGroups = "[
         'childSubscriptions': [],
         'aadGroups': [
             {
-                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-READ',
+                'groupName': '" + $EnterprisePrefix + "-MGP-ROOT-READ',
                 'groupDescription': 'Group with Reader assignment over Tenant Root Group.',
                 'armParameter': 'rootMgpRbacReaderGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-CTRB',
+                'groupName': '" + $EnterprisePrefix + "-MGP-ROOT-CTRB',
                 'groupDescription': 'Group with Contributor assignment over Tenant Root Group.',
                 'armParameter': 'rootMgpRbacContributorGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-OWNR',
+                'groupName': '" + $EnterprisePrefix + "-MGP-ROOT-OWNR',
                 'groupDescription': 'Group with Owner assignment over Tenant Root Group.',
                 'armParameter': 'rootMgpRbacOwnerGroupId'
             }
@@ -59,17 +59,17 @@ $managementGroups = "[
         ],
         'aadGroups': [
             {
-                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-READ',
+                'groupName': '" + $EnterprisePrefix + "-MGP-CORE-READ',
                 'groupDescription': 'Group with Reader assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
                 'armParameter': 'coreMgpRbacReaderGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-CTRB',
+                'groupName': '" + $EnterprisePrefix + "-MGP-CORE-CTRB',
                 'groupDescription': 'Group with Contributor assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
                 'armParameter': 'coreMgpRbacContributorGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-OWNR',
+                'groupName': '" + $EnterprisePrefix + "-MGP-CORE-OWNR',
                 'groupDescription': 'Group with Owner assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
                 'armParameter': 'coreMgpRbacOwnerGroupId'
             }
@@ -82,19 +82,19 @@ $managementGroups = "[
         'childSubscriptions': [],
         'aadGroups': [
             {
-                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-READ',
-                'groupDescription': 'Group with Reader assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
-                'armParameter': 'coreMgpRbacReaderGroupId'
+                'groupName': '" + $EnterprisePrefix + "-MGP-LAB-READ',
+                'groupDescription': 'Group with Reader assignment over " + $EnterprisePrefix + "-LAB-MGP Management Group.',
+                'armParameter': 'labMgpRbacReaderGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-CTRB',
-                'groupDescription': 'Group with Contributor assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
-                'armParameter': 'coreMgpRbacContributorGroupId'
+                'groupName': '" + $EnterprisePrefix + "-MGP-LAB-CTRB',
+                'groupDescription': 'Group with Contributor assignment over " + $EnterprisePrefix + "-LAB-MGP Management Group.',
+                'armParameter': 'labMgpRbacContributorGroupId'
             },            
             {
-                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-OWNR',
-                'groupDescription': 'Group with Owner assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
-                'armParameter': 'coreMgpRbacOwnerGroupId'
+                'groupName': '" + $EnterprisePrefix + "-MGP-LAB-OWNR',
+                'groupDescription': 'Group with Owner assignment over " + $EnterprisePrefix + "-LAB-MGP Management Group.',
+                'armParameter': 'labMgpRbacOwnerGroupId'
             }
         ],
         'armParameter': 'labMgpName'
@@ -111,7 +111,7 @@ foreach ($managementGroup in $managementGroups) {
     else{
         # Check for Management Group existence
         $mgp = $null
-        Write-Output ("Getting Management Group DisplayName " + [char]34 + $mgp.DisplayName + [char]34 + "...")
+        Write-Output ("Getting Management Group DisplayName " + [char]34 + $managementGroup.name + [char]34 + "...")
         $mgp = Get-AzManagementGroup -Expand $rootMgpName | Select-Object -ExpandProperty Children | Where-Object -Property DisplayName -EQ -Value $managementGroup.displayName   
         # Create Management Group if it doesn't exist
         if ($mgp) {
