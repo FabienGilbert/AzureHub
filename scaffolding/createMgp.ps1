@@ -111,7 +111,7 @@ foreach ($managementGroup in $managementGroups) {
     else{
         # Check for Management Group existence
         $mgp = $null
-        Write-Output ("Getting Management Group DisplayName " + [char]34 + $managementGroup.name + [char]34 + "...")
+        Write-Output ("Getting Management Group DisplayName " + [char]34 + $managementGroup.displayName + [char]34 + "...")
         $mgp = Get-AzManagementGroup -Expand $rootMgpName | Select-Object -ExpandProperty Children | Where-Object -Property DisplayName -EQ -Value $managementGroup.displayName   
         # Create Management Group if it doesn't exist
         if ($mgp) {
