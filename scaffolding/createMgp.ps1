@@ -9,75 +9,167 @@ Param
     [String]
     $EnterprisePrefix,
 
-    #Naming convention Management Group Name Prefix
+    #Tenant Root Management Group Resource Id
     [Parameter(Mandatory = $true, 
         Position = 1)]
-    [ValidateLength(3, 5)]  
-    [String]
-    $ManagementGroupNamePrefix,
-
-    #Naming convention Subscription Name Prefix
-    [Parameter(Mandatory = $true, 
-        Position = 2)]
-    [ValidateLength(3, 5)]  
-    [String]
-    $SubscriptionNamePrefix,
-
-    #Naming convention Subscription Ordinal Prefix
-    [Parameter(Mandatory = $true, 
-        Position = 3)]
-    [ValidatePattern("^[S]\d{2}$")]    
-    [String]
-    $SubscriptionOrdinalPrefix,
-
-    #Parent Management Group Resource Id
-    [Parameter(Mandatory = $true, 
-        Position = 4)]
     [ValidateNotNullOrEmpty()]    
     [String]
-    $ParentMgpResourceId
+    $rootMgpName,    
+
+    #HUB Subscription Id
+    [Parameter(Mandatory = $true, 
+        Position = 2)]
+    [ValidateNotNullOrEmpty()]      
+    [String]
+    $hubSubscriptionId
 )
 
-# Build names
-$managementGroupName = ($EnterprisePrefix + "-" + $ManagementGroupNamePrefix + "-MGP")
-$subscriptionName = ($EnterprisePrefix + "-" + $SubscriptionNamePrefix + "-" + $SubscriptionOrdinalPrefix.Replace("S","SUB-"))
+# Define Management Groups, associated subscriptions and Azure AD Groups (for RBAC)
+$managementGroups = "[
+    {
+        'displayName': 'Tenant Root Group',
+        'name': '" + $rootMgpName + "',
+        'childSubscriptions': [],
+        'aadGroups': [
+            {
+                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-READ',
+                'groupDescription': 'Group with Reader assignment over Tenant Root Group.',
+                'armParameter': 'rootMgpRbacReaderGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-CTRB',
+                'groupDescription': 'Group with Contributor assignment over Tenant Root Group.',
+                'armParameter': 'rootMgpRbacContributorGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-ROOT-MGP-OWNR',
+                'groupDescription': 'Group with Owner assignment over Tenant Root Group.',
+                'armParameter': 'rootMgpRbacOwnerGroupId'
+            }
+        ],
+        'armParameter': ''
+    },
+    {
+        'displayName': '" + $EnterprisePrefix + "-CORE-MGP',
+        'name': '',
+        'childSubscriptions': [
+            {
+                'id': '" + $hubSubscriptionId + "'
+            }
+        ],
+        'aadGroups': [
+            {
+                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-READ',
+                'groupDescription': 'Group with Reader assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacReaderGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-CTRB',
+                'groupDescription': 'Group with Contributor assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacContributorGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-CORE-MGP-OWNR',
+                'groupDescription': 'Group with Owner assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacOwnerGroupId'
+            }
+        ],
+        'armParameter': 'coreMgpName'
+    },
+    {
+        'displayName': '" + $EnterprisePrefix + "-LAB-MGP',
+        'name': '',
+        'childSubscriptions': [],
+        'aadGroups': [
+            {
+                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-READ',
+                'groupDescription': 'Group with Reader assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacReaderGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-CTRB',
+                'groupDescription': 'Group with Contributor assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacContributorGroupId'
+            },            
+            {
+                'groupName': '" + $EnterprisePrefix + "-LAB-MGP-OWNR',
+                'groupDescription': 'Group with Owner assignment over " + $EnterprisePrefix + "-CORE-MGP Management Group.',
+                'armParameter': 'coreMgpRbacOwnerGroupId'
+            }
+        ],
+        'armParameter': 'labMgpName'
+    }
+]" | ConvertFrom-Json
+$rootMgpResourceId = ("/providers/Microsoft.Management/managementGroups/" + $rootMgpName)
 
-# Check for Management Group existence
-$mgp = $null
-$mgp = Get-AzManagementGroup -Expand $ParentMgpResourceId.Split("/")[-1] | Select-Object -ExpandProperty Children | Where-Object -Property DisplayName -EQ -Value $managementGroupName   
-# Create Management Group if it doesn't exist
-if ($mgp) {
-    Write-Output ("Management Group DisplayName " + [char]34 + $managementGroupName + [char]34 + " already exists with Name " + [char]34 + $mgp.Name + [char]34 + ".")
-}
-else {       
-    $randomGuid = New-Guid 
-    Write-Output ("Creating Management Group DisplayName " + [char]34 + $managementGroupName + [char]34 + " Name " + [char]34 + $randomGuid.Guid + [char]34 + " under parent Management Group " + [char]34 + $ParentMgpResourceId + [char]34 + "...")
-    $mgp = New-AzManagementGroup -GroupName $randomGuid.Guid -DisplayName $managementGroupName -ParentId $ParentMgpResourceId
-}
-
-# Add Subscription to Management Group
-if ($mgp) {
-    $sub = Get-AzSubscription -SubscriptionName $subscriptionName
-    if ($sub) {
-        $mgpChildren = Get-AzManagementGroup -GroupName $mgp.Name -Expand | Select-Object -ExpandProperty Children
-        if($mgpChildren | Where-Object -Property Name -EQ -Value $sub.SubscriptionId){
-            Write-Output ("Subscription Name " + [char]34 + $sub.Name + [char]34 + " already children of Management Group " + [char]34 + $mgp.DisplayName + [char]34 + ".")
+foreach ($managementGroup in $managementGroups) {
+    # If Management Group Name/Id is not specified, attempt to create the Management Group
+    if (!($managementGroup.name)) {
+        # Check for Management Group existence
+        $mgp = $null
+        Write-Output ("Getting Management Group DisplayName " + [char]34 + $mgp.DisplayName + [char]34 + "...")
+        $mgp = Get-AzManagementGroup -Expand $rootMgpName | Select-Object -ExpandProperty Children | Where-Object -Property DisplayName -EQ -Value $managementGroup.displayName   
+        # Create Management Group if it doesn't exist
+        if ($mgp) {
+            Write-Output ("Management Group DisplayName " + [char]34 + $mgp.DisplayName + [char]34 + " already exists with Name " + [char]34 + $mgp.Name + [char]34 + ".")
         }
-        else{        
-            Write-Output ("Adding Subscription Name " + [char]34 + $sub.Name + [char]34 + " as children of Management Group " + [char]34 + $mgp.DisplayName + [char]34 + "...")
-            New-AzManagementGroupSubscription -GroupName $mgp.Name -SubscriptionId $sub.SubscriptionId         
+        else {       
+            $randomGuid = New-Guid 
+            Write-Output ("Creating Management Group DisplayName " + [char]34 + $managementGroup.displayName + [char]34 + " Name " + [char]34 + $randomGuid.Guid + [char]34 + " under parent Management Group " + [char]34 + $rootMgpResourceId + [char]34 + "...")
+            $mgp = New-AzManagementGroup -GroupName $randomGuid.Guid -DisplayName $managementGroup.displayName -ParentId $rootMgpResourceId
+        }
+    }
+
+    # Add Subscription to Management Group
+    if ($mgp) {
+        # Loop through all child subscriptions
+        foreach ($childSub in $managementGroup.childSubscriptions) {
+            $sub = Get-AzSubscription -SubscriptionId $childSub.id
+            if ($sub) {
+                $mgpChildren = Get-AzManagementGroup -GroupName $mgp.Name -Expand | Select-Object -ExpandProperty Children
+                if ($mgpChildren | Where-Object -Property Name -EQ -Value $sub.SubscriptionId) {
+                    Write-Output ("Subscription Name " + [char]34 + $sub.Name + [char]34 + " already children of Management Group " + [char]34 + $mgp.DisplayName + [char]34 + ".")
+                }
+                else {        
+                    Write-Output ("Adding Subscription Name " + [char]34 + $sub.Name + [char]34 + " as children of Management Group " + [char]34 + $mgp.DisplayName + [char]34 + "...")
+                    New-AzManagementGroupSubscription -GroupName $mgp.Name -SubscriptionId $sub.SubscriptionId         
+                }
+            }
+            else {
+                Write-Error -Message ("Could not find subscription id " + [char]34 + $childSub.id + [char]34 + ".")
+            }
         }
     }
     else {
-        Write-Error -Message ("Could not find subscription name " + [char]34 + $sub.Name + [char]34 + ".")
+        Write-Error -Message ("Management Group DisplayName " + [char]34 + $managementGroup.displayName + [char]34 + " could not be created under parent Management Group " + [char]34 + $rootMgpResourceId + [char]34 + ".")
+    }
+
+    # Outputs Management Group Name
+    if ($managementGroup.armParameter) {
+        Write-Host ($managementGroup.armParameter + " set to " + $mgp.Name)
+        Write-Host ("##vso[task.setvariable variable=" + $managementGroup.armParameter + ";]" + $mgp.Name)
+    }
+
+    # Create Azure AD Groups for RBAC
+    foreach ($aadGroup in $managementGroup.aadGroups) {
+        #Get existing Azure AD Group
+        Write-Output ("Getting Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + "...")
+        $grp = $null
+        $grp = Get-AzADGroup -DisplayName $aadGroup.groupName
+        if ($grp) {
+            Write-Output ("Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + " already exists.")
+        }
+        else {        
+            Write-Output ("Creating Azure AD Group Name " + [char]34 + $aadGroup.groupName + [char]34 + "...")
+            $grp = New-AzADGroup -DisplayName $aadGroup.groupName -MailNickname $aadGroup.groupName -Description $aadGroup.groupDescription
+        }
+        if ($grp.Id) {
+            Write-Host ($aadGroup.armParameter + " set to " + $grp.Id)
+            Write-Host ("##vso[task.setvariable variable=" + $aadGroup.armParameter + ";]" + $grp.Id)
+        }
+        else {
+            Write-Error -Message ("could not get/create Azure AD Group " + [char]34 + $aadGroup.groupName + [char]34 + " and get its OjectId.")
+            Exit
+        }
     }
 }
-else {
-    Write-Error -Message ("Management Group DisplayName " + [char]34 + $managementGroupName + [char]34 + " could not be created under parent Management Group " + [char]34 + $ParentMgpResourceId + [char]34 + ".")
-}
-
-# Outputs Management Group Name and Subscription Id
-Write-Host ("mgpName set to " + $mgp.Name)
-Write-Host ("##vso[task.setvariable variable=mgpName;]" + $mgp.Name)
-Write-Host ("subscriptionId set to " + $sub.SubscriptionId)
-Write-Host ("##vso[task.setvariable variable=subscriptionId;]" + $sub.SubscriptionId)
