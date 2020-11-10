@@ -104,7 +104,11 @@ $rootMgpResourceId = ("/providers/Microsoft.Management/managementGroups/" + $roo
 
 foreach ($managementGroup in $managementGroups) {
     # If Management Group Name/Id is not specified, attempt to create the Management Group
-    if (!($managementGroup.name)) {
+    if ($managementGroup.name) {
+        Write-Output ("Getting Management Group Name " + [char]34 + $managementGroup.name + [char]34 + "...")
+        $mgp = Get-AzManagementGroup -GroupName $managementGroup.name
+    }
+    else{
         # Check for Management Group existence
         $mgp = $null
         Write-Output ("Getting Management Group DisplayName " + [char]34 + $mgp.DisplayName + [char]34 + "...")
@@ -141,7 +145,7 @@ foreach ($managementGroup in $managementGroups) {
         }
     }
     else {
-        Write-Error -Message ("Management Group DisplayName " + [char]34 + $managementGroup.displayName + [char]34 + " could not be created under parent Management Group " + [char]34 + $rootMgpResourceId + [char]34 + ".")
+        Write-Error -Message ("Subscriptions could not be added to Management Group DisplayName " + [char]34 + $managementGroup.displayName + [char]34 + " because it could not be found.")
     }
 
     # Outputs Management Group Name
