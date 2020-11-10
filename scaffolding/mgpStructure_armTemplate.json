@@ -174,36 +174,42 @@
     ],
     "childManagementGroupsRbac": [
       {
+        "deploymentName": "coreMgpRbacRead",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
         "roleDefinitionName": "Reader",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
         "principalId": "[parameters('coreMgpRbacReaderGroupId')]"
       },
       {
+        "deploymentName": "coreMgpRbacCtrb",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
         "roleDefinitionName": "Contributor",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "principalId": "[parameters('coreMgpRbacContributorGroupId')]"
       },
       {
+        "deploymentName": "coreMgpRbacOwnr",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
         "roleDefinitionName": "Owner",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
         "principalId": "[parameters('coreMgpRbacOwnerGroupId')]"
       },
       {
+        "deploymentName": "labMgpRbacRead",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
         "roleDefinitionName": "Reader",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
         "principalId": "[parameters('labMgpRbacReaderGroupId')]"
       },
       {
+        "deploymentName": "labMgpRbacCtrb",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
         "roleDefinitionName": "Contributor",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "principalId": "[parameters('labMgpRbacContributorGroupId')]"
       },
       {
+        "deploymentName": "labMgpRbacOwnr",
         "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
         "roleDefinitionName": "Owner",
         "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
@@ -243,7 +249,7 @@
       }
     },
     {
-      "name": "[concat('childMgpRbac_', variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].roleDefinitionName)]",
+      "name": "[variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].deploymentName]",
       "type": "Microsoft.Resources/deployments",
       "copy": {
         "name": "childMgpRbacLoop",
