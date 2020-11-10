@@ -1,0 +1,277 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the location for the deployment, resource group and resources."
+      }
+    },
+    "rootMgpName": {
+      "type": "string",
+      "metadata": {
+        "description": "Tenant Root Management Group Id."
+      }
+    },
+    "rootMgpRbacReaderGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Reader access to the Tenant Root Management Group"
+      }
+    },
+    "rootMgpRbacContributorGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Contributor access to the Tenant Root Management Group"
+      }
+    },
+    "rootMgpRbacOwnerGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Owner access to the Tenant Root Management Group"
+      }
+    },
+    "coreMgpName": {
+      "type": "string",
+      "metadata": {
+        "description": "Core Root Management Group Id."
+      }
+    },
+    "coreMgpRbacReaderGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Reader access to the Core Root Management Group"
+      }
+    },
+    "coreMgpRbacContributorGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Contributor access to the Core Root Management Group"
+      }
+    },
+    "coreMgpRbacOwnerGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Owner access to the Core Root Management Group"
+      }
+    },
+    "labMgpName": {
+      "type": "string",
+      "metadata": {
+        "description": "Lab Root Management Group Id."
+      }
+    },
+    "labMgpRbacReaderGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Reader access to the Lab Root Management Group"
+      }
+    },
+    "labMgpRbacContributorGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Contributor access to the Lab Root Management Group"
+      }
+    },
+    "labMgpRbacOwnerGroupId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Group Id for Owner access to the Lab Root Management Group"
+      }
+    }
+  },
+  "variables": {
+    "rootManagementGroupRbac": [
+      {
+        "roleDefinitionName": "Reader",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "principalId": "[parameters('rootMgpRbacReaderGroupId')]"
+      },
+      {
+        "roleDefinitionName": "Contributor",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalId": "[parameters('rootMgpRbacContributorGroupId')]"
+      },
+      {
+        "roleDefinitionName": "Owner",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+        "principalId": "[parameters('rootMgpRbacOwnerGroupId')]"
+      }
+    ],
+    "rootManagementGroupPolicy": [
+      {
+        "policyAssignmentName": "Key vaults firewall",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/ea4d6841-2173-4317-9747-ff522a45120f",
+        "notScopes": [],
+        "parameters": []
+      },
+      {
+        "policyAssignmentName": "Storage account firewall",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/60d21c4f-21a3-4d94-85f4-b924e6aeeda4",
+        "notScopes": [],
+        "parameters": []
+      },
+      {
+        "policyAssignmentName": "Subnets require NSG",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/e71308d3-144b-4262-b144-efdc3cc90517",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "Resources must be in US",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
+        "notScopes": [],
+        "parameters": {
+          "listOfAllowedLocations": {
+            "value": [ "eastus", "eastus2", "eastusstage", "eastus2stage", "centralus", "centralusstage", "northcentralus", "northcentralusstage", "southcentralus", "southcentralusstage", "unitesstates", "westcentralus", "westus", "westusstage", "westus2", "westus2stage" ]
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "NIC should not have PIPs",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114",
+        "notScopes": [],
+        "parameters": {}
+      },
+      {
+        "policyAssignmentName": "Disk encryption for VM",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/0961003e-5a0a-4549-abde-af6a37f2724d",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "Required Diag KeyVault",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/cf820ca0-f99e-4f3e-84fb-66e913812d21",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "AuditIfNotExists"
+          },
+          "requiredRetentionDays": {
+            "value": "365"
+          }
+        }
+      },
+      {
+        "policyAssignmentName": "KeyVault Obj Recoverable",
+        "policyDefinitionID": "/providers/Microsoft.Authorization/policyDefinitions/0b60c0b2-2dc2-4e1c-b5c9-abbed971de53",
+        "notScopes": [],
+        "parameters": {
+          "Effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    ],
+    "childManagementGroupsRbac": [
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
+        "roleDefinitionName": "Reader",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "principalId": "[parameters('coreMgpRbacReaderGroupId')]"
+      },
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
+        "roleDefinitionName": "Contributor",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalId": "[parameters('coreMgpRbacContributorGroupId')]"
+      },
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('coreMgpName'))]",
+        "roleDefinitionName": "Owner",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('coreMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+        "principalId": "[parameters('coreMgpRbacOwnerGroupId')]"
+      },
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
+        "roleDefinitionName": "Reader",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+        "principalId": "[parameters('labMgpRbacReaderGroupId')]"
+      },
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
+        "roleDefinitionName": "Contributor",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "principalId": "[parameters('labMgpRbacContributorGroupId')]"
+      },
+      {
+        "scopeId": "[concat('Microsoft.Management/managementGroups/', parameters('labMgpName'))]",
+        "roleDefinitionName": "Owner",
+        "roleDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('labMgpName'), '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+        "principalId": "[parameters('labMgpRbacOwnerGroupId')]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "name": "[guid(variables('rootManagementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId, variables('rootManagementGroupRbac')[copyIndex('mgpRbacLoop')].principalId)]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "copy": {
+        "name": "mgpRbacLoop",
+        "count": "[length(variables('rootManagementGroupRbac'))]"
+      },
+      "apiVersion": "2020-04-01-preview",
+      "location": "[parameters('location')]",
+      "properties": {
+        "roleDefinitionId": "[variables('rootManagementGroupRbac')[copyIndex('mgpRbacLoop')].roleDefinitionId]",
+        "principalId": "[variables('rootManagementGroupRbac')[copyIndex('mgpRbacLoop')].principalId]"
+      }
+    },
+    {
+      "name": "[variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyAssignmentName]",
+      "type": "Microsoft.Authorization/policyAssignments",
+      "copy": {
+        "name": "mgpPolicyLoop",
+        "count": "[length(variables('rootManagementGroupPolicy'))]"
+      },
+      "apiVersion": "2019-09-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "scope": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgpName'))]",
+        "policyDefinitionId": "[variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].policyDefinitionID]",
+        "parameters": "[if(equals(variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters,json('[]')), json('null'), variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].parameters)]",
+        "notScopes": "[if(equals(variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes,json('[]')), json('null'), variables('rootManagementGroupPolicy')[copyIndex('mgpPolicyLoop')].notScopes)]"
+      }
+    },
+    {
+      "name": "[concat('childMgpRbac_', variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].roleDefinitionName)]",
+      "type": "Microsoft.Resources/deployments",
+      "copy": {
+        "name": "childMgpRbacLoop",
+        "count": "[length(variables('childManagementGroupsRbac'))]"
+      },
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
+      "scope": "[variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].scopeId]",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-04-01-preview",
+              "name": "[guid(variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].roleDefinitionId, variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].principalId)]",
+              "properties": {
+                "roleDefinitionId": "[variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].roleDefinitionId]",
+                "principalId": "[variables('childManagementGroupsRbac')[copyIndex('childMgpRbacLoop')].principalId]"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

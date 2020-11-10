@@ -1,0 +1,43 @@
+# Deploys Management Group structure for the specified environment
+
+trigger: none
+
+pool:
+  name: Azure Pipelines
+  vmImage: 'windows-2019'
+
+variables:
+- group: ManagementGroupStructure
+
+steps:
+- checkout: self
+  fetchDepth: 1
+
+- task: AzurePowerShell@5
+  displayName: 'Management Group Creation'
+  inputs:
+    azureSubscription: 'FGT-ROOT-MGP-OWNR'
+    ScriptPath: scaffolding/createMgp.ps1
+    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -rootMgpName $(rootMgpName) -hubSubscriptionId $(hubSubscriptionId)'
+    azurePowerShellVersion: LatestVersion
+
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'Hub Scaffolding Deployment'
+  inputs:
+    deploymentScope: 'Management Group'
+    azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
+    location: '$(location)'
+    csmFile: 'scaffolding/mgpStructure_armTemplate.json'
+    overrideParameters: '-location $(location) 
+                         -rootMgpName $(rootMgpName)
+                         -rootMgpRbacReaderGroupId $(rootMgpRbacReaderGroupId)
+                         -rootMgpRbacContributorGroupId $(rootMgpRbacContributorGroupId)
+                         -rootMgpRbacOwnerGroupId $(rootMgpRbacOwnerGroupId)
+                         -coreMgpName $(coreMgpName)
+                         -coreMgpRbacReaderGroupId $(coreMgpRbacReaderGroupId)
+                         -coreMgpRbacContributorGroupId $(coreMgpRbacContributorGroupId)
+                         -coreMgpRbacOwnerGroupId $(coreMgpRbacOwnerGroupId)
+                         -labMgpName $(labMgpName)
+                         -labMgpRbacReaderGroupId $(labMgpRbacReaderGroupId)
+                         -labMgpRbacContributorGroupId $(labMgpRbacContributorGroupId)
+                         -labMgpRbacOwnerGroupId $(labMgpRbacOwnerGroupId)'
