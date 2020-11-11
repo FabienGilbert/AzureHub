@@ -554,6 +554,76 @@
           }
         }
       }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubUdr_', variables('subnets')[copyIndex('udrLoop')].name)]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "copy": {
+        "name": "udrLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/udr_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "routeTableName": {
+            "value": "[concat(variables('subnets')[copyIndex('udrLoop')].name, '-UDR')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Route Table",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubNsg_', variables('subnets')[copyIndex('nsgLoop')].name)]",
+      "dependsOn": [
+        "[resourceId(variables('logRgp'), 'Microsoft.OperationalInsights/workspaces', variables('logWksName'))]"
+      ],
+      "copy": {
+        "name": "nsgLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('nsgRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsg_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "networkSecurityGroupName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgLoop')].name, '-NSG')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Network Security Group",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
     }
   ]
 }
