@@ -507,6 +507,30 @@
           "Environment": "[parameters('environmentTag')]"
         }
       }
+    ],
+    "publicIpPrefixName": "[concat(variables('leftPrefix'),'IPPRFX-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
+    "publicIpPrefixSize": 30,
+    "publicIpAddresses": [
+      {
+        "name": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
+        "domainLabel": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'publicip01')]",
+        "componentTag": "Public IP address for Azure Firewall"
+      },
+      {
+        "name": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-02')]",
+        "domainLabel": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'publicip02')]",
+        "componentTag": "Public IP address for WAP servers"
+      },
+      {
+        "name": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-03')]",
+        "domainLabel": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'publicip03')]",
+        "componentTag": "Public IP address"
+      },
+      {
+        "name": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-04')]",
+        "domainLabel": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'publicip04')]",
+        "componentTag": "Public IP address"
+      }
     ]
   },
   "resources": [
@@ -800,6 +824,75 @@
           "tags": {
             "value": {
               "Component": "Automation Account",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/publicIpPrefix_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ipPrefixName": {
+            "value": "[variables('publicIpPrefixName')]"
+          },
+          "prefixLength": {
+            "value": "[variables('publicIpPrefixSize')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Public IP Address Prefix",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('publicIpAddresses_', variables('publicIpAddresses')[copyIndex('publicIpLoop')].name)]",
+      "dependsOn": [
+        "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]"
+      ],
+      "copy": {
+        "name": "publicIpLoop",
+        "count": "[length(variables('publicIpAddresses'))]"
+      },
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/publicIpAddress_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ipPrefixName": {
+            "value": "[variables('publicIpPrefixName')]"
+          },
+          "publicIpAddressName": {
+            "value": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].name]"
+          },
+          "publicIpAddressDomainLabel": {
+            "value": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].domainLabel]"
+          },
+          "tags": {
+            "value": {
+              "Component": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].componentTag]",
               "Application": "[parameters('applicationTag')]",
               "Environment": "[parameters('environmentTag')]"
             }
