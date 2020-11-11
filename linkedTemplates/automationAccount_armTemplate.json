@@ -62,7 +62,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[concat(parameters('automationAccountName'), '_logWksLink_')]",
+            "name": "[concat(parameters('automationAccountName'), '_logWksLink')]",
             "dependsOn": [
                 "[parameters('automationAccountName')]"
             ],
