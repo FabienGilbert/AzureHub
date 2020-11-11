@@ -18,7 +18,7 @@ steps:
   inputs:
     deploymentScope: 'Subscription'
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
-    subscription: '$(subscriptionId)'
+    subscriptionid: '$(subscriptionId)'
     location: '$(location)'
     csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
     overrideParameters: '-addressPrefixes $(addressPrefixes)
