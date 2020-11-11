@@ -9,23 +9,9 @@ Param
     [String]
     $EnterprisePrefix,
 
-    #Naming convention Management Group Name Prefix
-    [Parameter(Mandatory = $true, 
-        Position = 1)]
-    [ValidateLength(3, 5)]  
-    [String]
-    $ManagementGroupNamePrefix,
-
-    #Naming convention Subscription Name Prefix
-    [Parameter(Mandatory = $true, 
-        Position = 2)]
-    [ValidateLength(3, 5)]  
-    [String]
-    $SubscriptionNamePrefix,
-
     #Naming convention Subscription Ordinal Prefix
     [Parameter(Mandatory = $true, 
-        Position = 3)]
+        Position = 1)]
     [ValidatePattern("^[S]\d{2}$")]    
     [String]
     $SubscriptionOrdinalPrefix   
@@ -34,32 +20,14 @@ Param
 #Declare Azure AD Groups
 $aadGroups = ("[
     {
-        'groupName': '" + $EnterprisePrefix + "-MGP-" + $ManagementGroupNamePrefix + "-READ',
-        'groupDescription': 'Group with Reader RBAC assignment on " + $ManagementGroupNamePrefix + " Management Group',
-        'groupObjectId': '',
-        'armParameter': 'mgpRbacReaderGroupId'
-    },
-    {
-        'groupName': '" + $EnterprisePrefix + "-MGP-" + $ManagementGroupNamePrefix + "-CTRB',
-        'groupDescription': 'Group with Contributor RBAC assignment on " + $ManagementGroupNamePrefix + " Management Group',
-        'groupObjectId': '',
-        'armParameter': 'mgpRbacContributorGroupId'
-    },
-    {
-        'groupName': '" + $EnterprisePrefix + "-MGP-" + $ManagementGroupNamePrefix + "-OWNR',
-        'groupDescription': 'Group with Owner RBAC assignment on " + $ManagementGroupNamePrefix + " Management Group',
-        'groupObjectId': '',
-        'armParameter': 'mgpRbacOwnerGroupId'
-    },
-    {
         'groupName': '" + $EnterprisePrefix + "-AKV-" + $SubscriptionOrdinalPrefix + "-READ',
-        'groupDescription': 'Group with read-only access in " + $SubscriptionNamePrefix + " subscription key vault access policies.',
+        'groupDescription': 'Group with read-only access in " + $SubscriptionOrdinalPrefix + " subscription key vault access policies.',
         'groupObjectId': '',
         'armParameter': 'keyVaultReadOnlyAccessGroupId'
     },
     {
         'groupName': '" + $EnterprisePrefix + "-AKV-" + $SubscriptionOrdinalPrefix + "-ALL',
-        'groupDescription': 'Group with full access access in " + $SubscriptionNamePrefix + " subscription key vault access policies.',
+        'groupDescription': 'Group with full access access in " + $SubscriptionOrdinalPrefix + " subscription key vault access policies.',
         'groupObjectId': '',
         'armParameter': 'keyVaultFullAccessGroupId'
     }

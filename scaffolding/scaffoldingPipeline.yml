@@ -13,6 +13,14 @@ steps:
 - checkout: self
   fetchDepth: 1
 
+- task: AzurePowerShell@5
+  displayName: 'Azure AD Group Creation'
+  inputs:
+    azureSubscription: 'FGT-ROOT-MGP-OWNR'
+    ScriptPath: scaffolding/createAkvAadGroups.ps1
+    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)'
+    azurePowerShellVersion: LatestVersion
+
 - task: AzureResourceManagerTemplateDeployment@3
   displayName: 'Hub Scaffolding Deployment'
   inputs:
