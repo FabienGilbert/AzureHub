@@ -16,7 +16,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   displayName: 'Hub Scaffolding Deployment'
   inputs:
-    deploymentScope: 'Management Group'
+    deploymentScope: 'Subscription'
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
     subscription: '$(subscriptionId)'
     location: '$(location)'
