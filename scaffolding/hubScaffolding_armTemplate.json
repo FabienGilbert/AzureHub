@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "tenantId": {
@@ -510,57 +510,50 @@
   },
   "resources": [
     {
-      "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-      "contentVersion": "1.0.0.0",
-      "parameters": {},
-      "variables": {},
-      "resources": [
-        {
-          "type": "Microsoft.Resources/resourceGroups",
-          "name": "[variables('resourceGroups')[copyIndex('rgpLoop')].name]",
-          "copy": {
-            "name": "rgpLoop",
-            "count": "[length(variables('resourceGroups'))]"
-          },
-          "apiVersion": "2020-06-01",
-          "location": "[variables('resourceGroups')[copyIndex('rgpLoop')].location]",
-          "tags": "[variables('resourceGroups')[copyIndex('rgpLoop')].tags]"
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "[variables('resourceGroups')[copyIndex('rgpLoop')].name]",
+      "copy": {
+        "name": "rgpLoop",
+        "count": "[length(variables('resourceGroups'))]"
+      },
+      "apiVersion": "2020-06-01",
+      "location": "[variables('resourceGroups')[copyIndex('rgpLoop')].location]",
+      "tags": "[variables('resourceGroups')[copyIndex('rgpLoop')].tags]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('logWks_', variables('logWksName'))]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "location": "[parameters('logWkslocation')]",
+      "resourceGroup": "[variables('logRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/logAnalyticsWorkspace_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
         },
-        {
-          "type": "Microsoft.Resources/deployments",
-          "apiVersion": "2020-06-01",
-          "name": "[concat('logWks_', variables('logWksName'))]",
-          "dependsOn": [
-            "rgpLoop"
-          ],
-          "resourceGroup": "[variables('logRgp')]",
-          "properties": {
-            "mode": "Incremental",
-            "templateLink": {
-              "uri": "[concat(variables('linkedTemplateContainerUri'), '/logAnalyticsWorkspace_armTemplate.json')]",
-              "contentVersion": "1.0.0.0"
-            },
-            "parameters": {
-              "workspaceName": {
-                "value": "[variables('logWksName')]"
-              },
-              "serviceTier": {
-                "value": "[parameters('logAnalyticsTier')]"
-              },
-              "dataRetention": {
-                "value": "[parameters('logAnalyticsRetention')]"
-              },
-              "tags": {
-                "value": {
-                  "Component": "Log Analytics Workspace",
-                  "Application": "[parameters('applicationTag')]",
-                  "Environment": "[parameters('environmentTag')]"
-                }
-              }
+        "parameters": {
+          "workspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "serviceTier": {
+            "value": "[parameters('logAnalyticsTier')]"
+          },
+          "dataRetention": {
+            "value": "[parameters('logAnalyticsRetention')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Log Analytics Workspace",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
             }
           }
         }
-      ]
+      }
     }
   ]
 }
