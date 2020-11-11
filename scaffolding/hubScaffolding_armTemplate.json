@@ -289,6 +289,7 @@
       }
     ],
     "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
+    "automationAccountName": "[concat(variables('leftPrefix'),'AUTO-',parameters('SubscriptionOrdinalPrefix'))]",
     "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('addsSubnetPrefix'), '/', '_'))]",
     "jumpSubnetName": "[concat(variables('leftPrefix'), 'SNT-JP-', replace(parameters('jumpSrvSubnetPrefix'), '/', '_'))]",
     "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('adfsSubnetPrefix'), '/', '_'))]",
@@ -765,6 +766,43 @@
           },
           "tags": {
             "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('automationAccount_', variables('automationAccountName'))]",
+      "dependsOn": [
+        "[concat('logWks_', variables('logWksName'))]"
+      ],
+      "resourceGroup": "[variables('autoRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/automationAccount_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "automationAccountName": {
+            "value": "[variables('automationAccountName')]"
+          },
+          "logAnalyticsWorkspaceRgp": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspacelocation": {
+            "value": "[parameters('logWkslocation')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Automation Account",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
           }
         }
       }
