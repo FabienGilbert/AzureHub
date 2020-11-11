@@ -18,7 +18,7 @@ steps:
   inputs:
     azureSubscription: 'FGT-ROOT-MGP-OWNR'
     ScriptPath: scaffolding/createMgp.ps1
-    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -rootMgpName $(rootMgpName) -hubSubscriptionId $(hubSubscriptionId)'
+    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -rootMgpName $(rootMgpName) -hubSubscriptionId $(hubSubscriptionId) -labSubscriptionId $(labSubscriptionId)'
     azurePowerShellVersion: LatestVersion
 
 - task: AzureResourceManagerTemplateDeployment@3

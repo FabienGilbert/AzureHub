@@ -21,7 +21,14 @@ Param
         Position = 2)]
     [ValidateNotNullOrEmpty()]      
     [String]
-    $hubSubscriptionId
+    $hubSubscriptionId,    
+
+    #LAB Subscription Id
+    [Parameter(Mandatory = $true, 
+        Position = 3)]
+    [ValidateNotNullOrEmpty()]      
+    [String]
+    $labSubscriptionId
 )
 
 # Define Management Groups, associated subscriptions and Azure AD Groups (for RBAC)
@@ -79,7 +86,11 @@ $managementGroups = "[
     {
         'displayName': '" + $EnterprisePrefix + "-LAB-MGP',
         'name': '',
-        'childSubscriptions': [],
+        'childSubscriptions': [
+            {
+                'id': '" + $labSubscriptionId + "'
+            }
+        ],
         'aadGroups': [
             {
                 'groupName': '" + $EnterprisePrefix + "-MGP-LAB-READ',
