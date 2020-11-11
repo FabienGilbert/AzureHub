@@ -626,6 +626,148 @@
           }
         }
       }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubVnet_', variables('vnetName'))]",
+      "resourceGroup": "[variables('netRgp')]",
+      "dependsOn": [
+        "udrLoop",
+        "nsgLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/vnet_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "addressPrefixes": {
+            "value": "[parameters('addressPrefixes')]"
+          },
+          "subnets": {
+            "value": "[variables('vnetSubnets')]"
+          },
+          "dnsServers": {
+            "value": "[parameters('dnsServers')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Virtual Network",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('keyVault_', variables('keyVaults')[copyIndex('keyVaultLoop')].name)]",
+      "dependsOn": [
+        "[concat('hubVnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "keyVaultLoop",
+        "count": "[length(variables('keyVaults'))]"
+      },
+      "resourceGroup": "[variables('akvRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/keyVault_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].name]"
+          },
+          "enableVaultForDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDeployment]"
+          },
+          "enableVaultForDiskEncryption": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDiskEncryption]"
+          },
+          "enabledForTemplateDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enabledForTemplateDeployment]"
+          },
+          "accessPolicies": {
+            "value": "[variables('keyVaultAccessPolicy')]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('storageAccount_', variables('storageAccounts')[copyIndex('storeLoop')].name)]",
+      "dependsOn": [
+        "[concat('hubVnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "storeLoop",
+        "count": "[length(variables('storageAccounts'))]"
+      },
+      "resourceGroup": "[variables('storageAccounts')[copyIndex('storeLoop')].resourceGroup]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/storageAccount_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "StorageAccountName": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].name]"
+          },
+          "StorageAccountTier": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tier]"
+          },
+          "StorageAccountSku": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].sku]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "tags": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tags]"
+          }
+        }
+      }
     }
   ]
 }
