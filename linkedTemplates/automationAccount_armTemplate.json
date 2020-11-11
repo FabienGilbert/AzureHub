@@ -1,0 +1,90 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "automationAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Automation account name"
+            }
+        },
+        "automationAccountLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the location in which to create the Automation account."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "logAnalyticsWorkspaceRgp": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the resource group which the Log Analytics Workspace is deployed in."
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "logAnalyticsWorkspacelocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the location which the Log Analytics Workspace is deployed in."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "logAnalyticsWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the name of the Log Analytics Workspace."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tags object."
+            }
+        }
+    },
+    "variables": {
+        "automationAccountRgp": "[resourceGroup().name]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Automation/automationAccounts",
+            "apiVersion": "2020-01-13-preview",
+            "name": "[parameters('automationAccountName')]",
+            "location": "[parameters('automationAccountLocation')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "sku": {
+                    "name": "Basic"
+                }
+            },
+            "resources": []
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(parameters('automationAccountName'), '_logWksLink_')]",
+            "dependsOn": [
+                "[parameters('automationAccountName')]"
+            ],
+            "resourceGroup": "[parameters('logAnalyticsWorkspaceRgp')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
+                            "apiVersion": "2020-08-01",
+                            "name": "[concat(parameters('logAnalyticsWorkspaceName'), '/' , 'Automation')]",
+                            "location": "[parameters('logAnalyticsWorkspacelocation')]",
+                            "properties": {
+                                "resourceId": "[resourceId(variables('automationAccountRgp'),'Microsoft.Automation/automationAccounts', parameters('automationAccountName'))]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
