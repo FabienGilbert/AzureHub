@@ -7,33 +7,41 @@ pool:
   vmImage: 'windows-2019'
 
 variables:
-- group: Hub
+- group: HubScaffolding
 
 steps:
 - checkout: self
   fetchDepth: 1
-
-- task: AzurePowerShell@5
-  displayName: 'Management Group Creation'
-  inputs:
-    azureSubscription: 'FGT-ROOT-MGP-OWNR'
-    ScriptPath: scaffolding/createMgp.ps1
-    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -ManagementGroupNamePrefix $(ManagementGroupNamePrefix) -SubscriptionNamePrefix $(SubscriptionNamePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix) -ParentMgpResourceId $(ParentMgpResourceId)'
-    azurePowerShellVersion: LatestVersion
-
-- task: AzurePowerShell@5
-  displayName: 'AAD Groups Creation'
-  inputs:
-    azureSubscription: 'FGT-ROOT-MGP-OWNR'
-    ScriptPath: scaffolding/createAadGroups.ps1
-    ScriptArguments: '-EnterprisePrefix $(EnterprisePrefix) -ManagementGroupNamePrefix $(ManagementGroupNamePrefix) -SubscriptionNamePrefix $(SubscriptionNamePrefix) -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)'
-    azurePowerShellVersion: LatestVersion
 
 - task: AzureResourceManagerTemplateDeployment@3
   displayName: 'Hub Scaffolding Deployment'
   inputs:
     deploymentScope: 'Management Group'
     azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
+    subscription: '$(subscriptionId)''
     location: '$(location)'
     csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
-    overrideParameters: '-location $(location) -mgpName $(mgpName) -mgpRbacReaderGroupId $(mgpRbacReaderGroupId) -mgpRbacContributorGroupId $(mgpRbacContributorGroupId) -mgpRbacOwnerGroupId $(mgpRbacOwnerGroupId)'
+    overrideParameters: '-addressPrefixes $(addressPrefixes)
+                         -addsSubnetPrefix $(addsSubnetPrefix)
+                         -adfsSubnetPrefix $(adfsSubnetPrefix)
+                         -allowedOnPremsPublicIps $(allowedOnPremsPublicIps)
+                         -appGatewaySubnetPrefix $(appGatewaySubnetPrefix)
+                         -applicationTag $(applicationTag)
+                         -appSubnetPrefix $(appSubnetPrefix)
+                         -dnsServers $(dnsServers)
+                         -EnterprisePrefix $(EnterprisePrefix)
+                         -EnvironmentPrefix $(EnvironmentPrefix)
+                         -environmentTag $(environmentTag)
+                         -firewallSubnetPrefix $(firewallSubnetPrefix)
+                         -gatewaySubnetPrefix $(gatewaySubnetPrefix)
+                         -jumpSrvSubnetPrefix $(jumpSrvSubnetPrefix)
+                         -keyVaultFullAccessGroupId $(keyVaultFullAccessGroupId)
+                         -keyVaultReadOnlyAccessGroupId $(keyVaultReadOnlyAccessGroupId)
+                         -location $(location)
+                         -logWkslocation $(logWkslocation)
+                         -LogWksRegionPrefix $(LogWksRegionPrefix)
+                         -RegionPrefix $(RegionPrefix)
+                         -subscriptionId $(subscriptionId)
+                         -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
+                         -tenantId $(tenantId)
+                         -wapSubnetPrefix $(wapSubnetPrefix)'
