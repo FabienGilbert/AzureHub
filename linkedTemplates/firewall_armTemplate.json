@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {        
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Firewall location"
+            }          
+        },
+        "azureFirewallName": {
+            "type": "string",
+            "metadata": {
+                "description": "Firewall name"
+            }          
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "VNET Resource Group"
+            }          
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Name"
+            }          
+        },
+        "firewallSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET subnet to attach the firewall to"
+            }          
+        },
+        "publicIpResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "Public IP Address Resource Group"
+            }          
+        },
+        "publicIpName": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Name"
+            }          
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tag object"
+            }  
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-05-01",
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[parameters('azureFirewallName')]",
+            "location": "[parameters('location')]",
+            "zones": [],
+            "dependsOn": [],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "[parameters('publicIpName')]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('vnetResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('vnetName'),'/subnets/',parameters('firewallSubnet'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId(parameters('publicIpResourceGroup'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "tags": "[parameters('tags')]"
+        }
+    ]
+}
