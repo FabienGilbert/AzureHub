@@ -1,4 +1,4 @@
-{  
+{
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
@@ -7,7 +7,7 @@
             "defaultValue": "[resourceGroup().location]",
             "metadata": {
                 "description": "Public IP address location"
-            }          
+            }
         },
         "sku": {
             "type": "string",
@@ -18,15 +18,15 @@
             ],
             "metadata": {
                 "description": "Public IP address sku"
-            }  
+            }
         },
         "publicIpAddressVersion": {
             "type": "string",
-            "allowedValues": ["IPv4","IPv6"],
+            "allowedValues": [ "IPv4", "IPv6" ],
             "defaultValue": "IPv4",
             "metadata": {
                 "description": "Public IP address version"
-            }  
+            }
         },
         "publicIPAllocationMethod": {
             "type": "string",
@@ -37,19 +37,19 @@
             "defaultValue": "Static",
             "metadata": {
                 "description": "Public IP address allocation method"
-            }  
+            }
         },
         "publicIpAddressName": {
             "type": "string",
             "metadata": {
                 "description": "Public IP address allocation name"
-            } 
+            }
         },
         "publicIpAddressDomainLabel": {
             "type": "string",
             "metadata": {
                 "description": "Public IP address domain label"
-            } 
+            }
         },
         "ipPrefixResourceGroup": {
             "type": "string",
@@ -62,17 +62,24 @@
             "type": "string",
             "metadata": {
                 "description": "Public IP prefix name"
-            } 
+            }
+        },
+        "zones": {
+            "type": "array",
+            "metadata": {
+                "description": "Availability Zones the IP Addresses should come from."
+            },
+            "defaultValue": []
         },
         "tags": {
             "type": "object",
             "metadata": {
                 "description": "Tag object"
-            }  
+            }
         }
-     },
-    "variables": {  
-     },
+    },
+    "variables": {
+    },
     "resources": [
         {
             "name": "[parameters('publicIpAddressName')]",
@@ -81,19 +88,19 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "sku": {
-              "name": "[parameters('sku')]"
+                "name": "[parameters('sku')]"
             },
             "properties": {
-              "publicIPAllocationMethod": "[parameters('publicIPAllocationMethod')]",
-              "publicIPAddressVersion": "[parameters('publicIpAddressVersion')]",
-              "dnsSettings": {
-                "domainNameLabel": "[parameters('publicIpAddressDomainLabel')]"
-              },
-              "publicIPPrefix": {
-                "id": "[resourceId(parameters('ipPrefixResourceGroup'), 'Microsoft.Network/publicIPPrefixes', parameters('ipPrefixName'))]"
-              }
-            }
+                "publicIPAllocationMethod": "[parameters('publicIPAllocationMethod')]",
+                "publicIPAddressVersion": "[parameters('publicIpAddressVersion')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('publicIpAddressDomainLabel')]"
+                },
+                "publicIPPrefix": {
+                    "id": "[resourceId(parameters('ipPrefixResourceGroup'), 'Microsoft.Network/publicIPPrefixes', parameters('ipPrefixName'))]"
+                }
+            },
+            "zones": "[parameters('zones')]"
         }
     ]
-   }
-    
+}

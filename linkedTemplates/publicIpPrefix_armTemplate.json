@@ -16,11 +16,11 @@
                 "description": "Public IP prefix SKU"
             }  
         },
-        "tier": {
-            "type": "string",
-            "defaultValue": "Regional",
+        "zones": {
+            "type": "array",
+            "defaultValue": [],
             "metadata": {
-                "description": "Public IP Prefix tier"
+                "description": "Public IP Prefix availability zones"
             }  
         },
         "ipPrefixName": {
@@ -62,13 +62,13 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "sku": {
-              "name": "[parameters('sku')]",
-              "tier": "[parameters('tier')]"
+              "name": "[parameters('sku')]"
             },
             "properties": {
               "publicIPAddressVersion": "[parameters('publicIpAddressVersion')]",
               "prefixLength": "[parameters('prefixLength')]"
-            }
+            },
+            "zones": "[parameters('zones')]"
         }        
     ]
 }

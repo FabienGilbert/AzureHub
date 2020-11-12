@@ -511,6 +511,7 @@
         }
       }
     ],
+    "publicIpZone": ["1"],
     "publicIpPrefixName": "[concat(variables('leftPrefix'),'IPPRFX-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
     "publicIpPrefixSize": 30,
     "publicIpAddresses": [
@@ -855,6 +856,9 @@
           "prefixLength": {
             "value": "[variables('publicIpPrefixSize')]"
           },
+          "zones": {
+            "value": "[variables('publicIpZone')]"
+          },
           "tags": {
             "value": {
               "Component": "Public IP Address Prefix",
@@ -892,6 +896,9 @@
           },
           "publicIpAddressDomainLabel": {
             "value": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].domainLabel]"
+          },
+          "zones": {
+            "value": "[variables('publicIpZone')]"
           },
           "tags": {
             "value": {
