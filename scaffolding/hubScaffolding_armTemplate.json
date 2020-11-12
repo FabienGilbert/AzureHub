@@ -290,6 +290,9 @@
     ],
     "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
     "automationAccountName": "[concat(variables('leftPrefix'),'AUTO-',parameters('SubscriptionOrdinalPrefix'))]",
+    "firewallName": "[concat(variables('leftPrefix'),'FW-',parameters('SubscriptionOrdinalPrefix'))]",
+    "firewallSubnetName": "AzureFirewallSubnet",
+    "firewallIpName": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
     "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('addsSubnetPrefix'), '/', '_'))]",
     "jumpSubnetName": "[concat(variables('leftPrefix'), 'SNT-JP-', replace(parameters('jumpSrvSubnetPrefix'), '/', '_'))]",
     "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('adfsSubnetPrefix'), '/', '_'))]",
@@ -309,7 +312,7 @@
         "serviceEndpoints": false
       },
       {
-        "name": "AzureFirewallSubnet",
+        "name": "[variables('firewallSubnetName')]",
         "ipPrefix": "[parameters('firewallSubnetPrefix')]",
         "nsgUdr": false,
         "serviceEndpoints": false
@@ -512,7 +515,7 @@
     "publicIpPrefixSize": 30,
     "publicIpAddresses": [
       {
-        "name": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
+        "name": "[variables('firewallIpName')]",
         "domainLabel": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'publicip01')]",
         "componentTag": "Public IP address for Azure Firewall"
       },
@@ -893,6 +896,43 @@
           "tags": {
             "value": {
               "Component": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].componentTag]",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubFirewall_', variables('firewallName'))]",
+      "resourceGroup": "[variables('netRgp')]",
+      "dependsOn": [
+        "publicIpLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/firewall_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "azureFirewallName": {
+            "value": "[variables('firewallName')]"
+          },
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "firewallSubnet": {
+            "value": "[variables('firewallSubnetName')]"
+          },
+          "publicIpName": {
+            "value": "[variables('firewallIpName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Azure Firewall",
               "Application": "[parameters('applicationTag')]",
               "Environment": "[parameters('environmentTag')]"
             }
