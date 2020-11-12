@@ -60,7 +60,6 @@
             "type": "Microsoft.Network/azureFirewalls",
             "name": "[parameters('azureFirewallName')]",
             "location": "[parameters('location')]",
-            "zones": [],
             "dependsOn": [],
             "properties": {
                 "ipConfigurations": [
