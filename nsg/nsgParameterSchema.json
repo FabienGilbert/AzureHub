@@ -216,20 +216,20 @@
                   }
                 },
                 "required": [
-                  "Direction",
-                  "Priority",
-                  "Name",
-                  "Description",
-                  "Access",
-                  "SourceAddressPrefix",
-                  "SourceAddressPrefixes",
-                  "DestinationAddressPrefix",
-                  "DestinationAddressPrefixes",
-                  "Protocol",
-                  "SourcePortRange",
-                  "SourcePortRanges",
-                  "DestinationPortRange",
-                  "DestinationPortRanges"
+                  "direction",
+                  "priority",
+                  "name",
+                  "description",
+                  "access",
+                  "sourceAddressPrefix",
+                  "sourceAddressPrefixes",
+                  "destinationAddressPrefix",
+                  "destinationAddressPrefixes",
+                  "protocol",
+                  "sourcePortRange",
+                  "sourcePortRanges",
+                  "destinationPortRange",
+                  "destinationPortRanges"
                 ],
                 "defaultSnippets": [
                   {
