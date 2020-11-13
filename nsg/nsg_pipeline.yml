@@ -1,0 +1,46 @@
+# Deploys indicated VM resources to target subsription
+
+parameters:
+  - name: nsgList
+    displayName: 'Network Security Groups to update'
+    type: object
+    values:
+      - FGT-E2-C-SNT-AP-10.184.224.224_27-NSG
+      - FGT-E2-C-SNT-DS-10.184.224.128_27-NSG
+      - FGT-E2-C-SNT-FS-10.184.224.160_27-NSG
+      - FGT-E2-C-SNT-JP-10.184.225.0_27-NSG
+      - FGT-E2-C-SNT-RP-10.184.224.192_27-NSG
+  - name: subscription
+    displayName: 'Subscription to deploy to'
+    type: string
+    values:
+     - FGT-HUB-SUB-01
+     - FGT-LAB-SUB-02
+
+trigger: none
+
+pool:
+  name: Azure Pipelines
+  vmImage: 'windows-2019'
+
+jobs:
+  - ${{ each nsg in parameters.nsgList }}:
+    - job: "_${{ nsg }}"
+
+      steps:
+        - checkout: self
+          fetchDepth: 1
+
+        # Deploy Azure Resources using ARM template
+        - task: AzureResourceManagerTemplateDeployment@3
+          displayName: 'Deploy Network Security Group'
+          enabled: true
+          continueOnError: true
+          inputs:            
+            deploymentScope: 'Resource Group'
+            azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
+            subscriptionid: '$(subscriptionId)'
+            resourceGroupName: 'FGT-E2-C-NSG-RGP-S01'
+            location: 'EastUS2'
+            csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
+            overrideParameters: '''
