@@ -1,0 +1,297 @@
+{
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "networkSecurityGroupName": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,6}-[A-Z1-9]{1,2}-[A-Z]{1}-[A-Z]{1,4}-[A-Z]{2}-[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}_[0-9]{1,2}-NSG$",
+              "description": "Network Security Group Name as per Naming Convention.",
+              "examples": [
+                "CTS-E2-P-AP-10.1.0.0_24-NSG",
+                "CTS-W-P-AP-10.2.0.0_24-NSG",
+                "CTS-E2-D-AP-10.1.10.0_24-NSG",
+                "CTS-E2-P-ED-10.2.0.0_24-NSG"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "deploymentResourceGroup": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,6}-[A-Z1-9]{1,2}-[A-Z]{1}-[A-Z]{1,6}-[A-Z]{1,4}-[A-Z0-9]{1,3}$",
+              "description": "Network Security Group Resource Group as per Naming Convention.",
+              "examples": [
+                "CTS-E2-C-NSG-RGP-S01",
+                "CTS-E2-P-NSG-RGP-S02",
+                "CTS-W-C-NSG-RGP-S01",
+                "CTS-W-D-NSG-RGP-S03"
+              ]
+            },
+            "additionalProperties": false
+          }
+        },
+        "securityRules": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "array",
+              "items": {
+                "properties": {
+                  "Direction": {
+                    "type": "string",
+                    "enum": [
+                      "inbound",
+                      "outbound"
+                    ],
+                    "description": "Traffic direction this rule is to apply on"
+                  },
+                  "Priority": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 4096,
+                    "description": "Rule Priority. Start at 200. Space them out by 10. Space deny rules by 500."
+                  },
+                  "Name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "Short rule name. Alphanumeric, hyphen, underscore, and period only.",
+                    "pattern": "^[A-Za-z0-9]{1}[A-Za-z0-9-_.]*[A-Za-z_]{1}$"
+                  },
+                  "Description": {
+                    "type": "string",
+                    "description": "Detailed description of what the rule is for."
+                  },
+                  "Access": {
+                    "type": "string",
+                    "enum": [
+                      "allow",
+                      "deny"
+                    ],
+                    "description": "allow or deny traffic."
+                  },
+                  "SourceAddressPrefix": {
+                    "type": "string",
+                    "description": "Either a single Source Address/Service Tag",
+                    "examples": [
+                      "Internet",
+                      "VirtualNetwork",
+                      "AzureLoadBalancer",
+                      "10.184.226.0/27",
+                      "*",
+                      ""
+                    ],
+                    "default": ""
+                  },
+                  "SourceAddressPrefixes": {
+                    "type": "array",
+                    "description": "Or an array of several Source Addresses",
+                    "default": [],
+                    "examples": [
+                      [
+                        "10.184.226.0/27",
+                        "10.184.228.0/27"
+                      ]
+                    ]
+                  },
+                  "SourceApplicationSecurityGroups": {
+                    "type": "array",
+                    "description": "SourceApplicationSecurityGroups",
+                    "default": []
+                  },
+                  "DestinationAddressPrefix": {
+                    "type": "string",
+                    "description": "Either a single Destination Address/Service Tag",
+                    "examples": [
+                      "Internet",
+                      "VirtualNetwork",
+                      "10.184.226.0/27",
+                      "*",
+                      ""
+                    ],
+                    "default": ""
+                  },
+                  "DestinationAddressPrefixes": {
+                    "type": "array",
+                    "description": "Or an array of several Destination Addresses",
+                    "default": [],
+                    "examples": [
+                      [
+                        "10.184.226.0/27",
+                        "10.184.228.0/27"
+                      ]
+                    ]
+                  },
+                  "Protocol": {
+                    "type": "string",
+                    "description": "Protocol the rule is applying on",
+                    "enum": [
+                      "tcp",
+                      "udp",
+                      "*"
+                    ]
+                  },
+                  "SourcePortRange": {
+                    "type": "string",
+                    "description": "Either a single Source Port Range",
+                    "default": "*",
+                    "pattern": "^[0-9-*]*$",
+                    "examples": [
+                      "",
+                      "5555",
+                      "49152-65535"
+                    ]
+                  },
+                  "SourcePortRanges": {
+                    "type": "array",
+                    "description": "Or an array of Source Port Ranges",
+                    "default": [],
+                    "items": {
+                      "pattern": "^[0-9]{1}[0-9-]*$"
+                    },
+                    "examples": [
+                      [
+                        "5555",
+                        "49152-65535"
+                      ],
+                      [
+                        "6666",
+                        "7777",
+                        "1024-65535"
+                      ]
+                    ]
+                  },
+                  "DestinationPortRange": {
+                    "type": "string",
+                    "description": "Either a single Destination Port Range",
+                    "default": "*",
+                    "pattern": "^[0-9-*]*$",
+                    "examples": [
+                      "443",
+                      "49152-65535"
+                    ]
+                  },
+                  "DestinationPortRanges": {
+                    "type": "array",
+                    "description": "Or an array of Destination Port Ranges",
+                    "default": [],
+                    "items": {
+                      "pattern": "^[0-9]{1}[0-9-]*$"
+                    },
+                    "examples": [
+                      [
+                        "3389",
+                        "5985-5986"
+                      ],
+                      [
+                        "53",
+                        "88",
+                        "135",
+                        "137-139",
+                        "389",
+                        "445",
+                        "464",
+                        "636",
+                        "3268",
+                        "3269",
+                        "49152-65535"
+                      ]
+                    ]
+                  }
+                },
+                "required": [
+                  "Direction",
+                  "Priority",
+                  "Name",
+                  "Description",
+                  "Access",
+                  "SourceAddressPrefix",
+                  "SourceAddressPrefixes",
+                  "DestinationAddressPrefix",
+                  "DestinationAddressPrefixes",
+                  "Protocol",
+                  "SourcePortRange",
+                  "SourcePortRanges",
+                  "DestinationPortRange",
+                  "DestinationPortRanges"
+                ],
+                "defaultSnippets": [
+                  {
+                    "label": "New Security Rule",
+                    "description": "Creates a new Security Rule template",
+                    "body": {
+                      "Direction": "${1|inbound,outbound|}",
+                      "Priority": "^$2",
+                      "Name": "$3",
+                      "Description": "$4",
+                      "Access": "${5|allow,deny|}",
+                      "Protocol": "${6|tcp,udp,*|}",
+                      "SourceAddressPrefix": "$7",
+                      "SourceAddressPrefixes": "^$8",
+                      "DestinationAddressPrefix": "$9",
+                      "DestinationAddressPrefixes": "^$10",
+                      "SourcePortRange": "*",
+                      "SourcePortRanges": [],
+                      "DestinationPortRange": "$11",
+                      "DestinationPortRanges": "^$12"
+                    }
+                  }
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "tags": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "object",
+              "properties": {
+                "Component": {
+                  "type": "string",
+                  "description": "Component Tag."
+                },                
+                "Environment": {
+                  "type": "string",
+                  "description": "Environment Tag.",
+                  "examples": [
+                    "Prod",
+                    "Core",
+                    "Lab",
+                    "Nonprod"
+                  ]
+                },                
+                "Application": {
+                  "type": "string",
+                  "description": "Application Tag."
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "deploymentResourceGroup",
+        "networkSecurityGroupName",
+        "securityRules",
+        "tags"
+      ],
+      "additionalProperties": false
+    },
+    "additionalProperties": false
+  }
+}
