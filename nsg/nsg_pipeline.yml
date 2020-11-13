@@ -43,4 +43,4 @@ jobs:
             resourceGroupName: 'FGT-E2-C-NSG-RGP-S01'
             location: 'EastUS2'
             csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
-            overrideParameters: '''
+            overrideParameters: ''
