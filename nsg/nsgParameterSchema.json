@@ -21,6 +21,9 @@
               ]
             }
           },
+          "required": [
+            "value"
+          ],
           "additionalProperties": false
         },
         "deploymentResourceGroup": {
@@ -37,6 +40,9 @@
                 "CTS-W-D-NSG-RGP-S03"
               ]
             },
+            "required": [
+              "value"
+            ],
             "additionalProperties": false
           }
         },
@@ -47,7 +53,7 @@
               "type": "array",
               "items": {
                 "properties": {
-                  "Direction": {
+                  "direction": {
                     "type": "string",
                     "enum": [
                       "inbound",
@@ -55,24 +61,24 @@
                     ],
                     "description": "Traffic direction this rule is to apply on"
                   },
-                  "Priority": {
+                  "priority": {
                     "type": "integer",
                     "minimum": 100,
                     "maximum": 4096,
                     "description": "Rule Priority. Start at 200. Space them out by 10. Space deny rules by 500."
                   },
-                  "Name": {
+                  "name": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80,
                     "description": "Short rule name. Alphanumeric, hyphen, underscore, and period only.",
                     "pattern": "^[A-Za-z0-9]{1}[A-Za-z0-9-_.]*[A-Za-z_]{1}$"
                   },
-                  "Description": {
+                  "description": {
                     "type": "string",
                     "description": "Detailed description of what the rule is for."
                   },
-                  "Access": {
+                  "access": {
                     "type": "string",
                     "enum": [
                       "allow",
@@ -80,7 +86,7 @@
                     ],
                     "description": "allow or deny traffic."
                   },
-                  "SourceAddressPrefix": {
+                  "sourceAddressPrefix": {
                     "type": "string",
                     "description": "Either a single Source Address/Service Tag",
                     "examples": [
@@ -93,7 +99,7 @@
                     ],
                     "default": ""
                   },
-                  "SourceAddressPrefixes": {
+                  "sourceAddressPrefixes": {
                     "type": "array",
                     "description": "Or an array of several Source Addresses",
                     "default": [],
@@ -104,12 +110,12 @@
                       ]
                     ]
                   },
-                  "SourceApplicationSecurityGroups": {
+                  "sourceApplicationSecurityGroups": {
                     "type": "array",
                     "description": "SourceApplicationSecurityGroups",
                     "default": []
                   },
-                  "DestinationAddressPrefix": {
+                  "destinationAddressPrefix": {
                     "type": "string",
                     "description": "Either a single Destination Address/Service Tag",
                     "examples": [
@@ -121,7 +127,7 @@
                     ],
                     "default": ""
                   },
-                  "DestinationAddressPrefixes": {
+                  "destinationAddressPrefixes": {
                     "type": "array",
                     "description": "Or an array of several Destination Addresses",
                     "default": [],
@@ -132,7 +138,7 @@
                       ]
                     ]
                   },
-                  "Protocol": {
+                  "protocol": {
                     "type": "string",
                     "description": "Protocol the rule is applying on",
                     "enum": [
@@ -141,7 +147,7 @@
                       "*"
                     ]
                   },
-                  "SourcePortRange": {
+                  "sourcePortRange": {
                     "type": "string",
                     "description": "Either a single Source Port Range",
                     "default": "*",
@@ -152,7 +158,7 @@
                       "49152-65535"
                     ]
                   },
-                  "SourcePortRanges": {
+                  "sourcePortRanges": {
                     "type": "array",
                     "description": "Or an array of Source Port Ranges",
                     "default": [],
@@ -171,7 +177,7 @@
                       ]
                     ]
                   },
-                  "DestinationPortRange": {
+                  "destinationPortRange": {
                     "type": "string",
                     "description": "Either a single Destination Port Range",
                     "default": "*",
@@ -181,7 +187,7 @@
                       "49152-65535"
                     ]
                   },
-                  "DestinationPortRanges": {
+                  "destinationPortRanges": {
                     "type": "array",
                     "description": "Or an array of Destination Port Ranges",
                     "default": [],
@@ -249,7 +255,11 @@
                 ],
                 "additionalProperties": false
               }
-            }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
           },
           "additionalProperties": false
         },
@@ -278,8 +288,17 @@
                   "description": "Application Tag."
                 },
                 "additionalProperties": false
-              }
+              },
+              "required": [
+                "Component",
+                "Environment",
+                "Application"
+              ],
+              "additionalProperties": false
             },
+            "required": [
+              "value"
+            ],
             "additionalProperties": false
           }
         }
