@@ -4,7 +4,7 @@ parameters:
   - name: nsgList
     displayName: 'Network Security Groups to update'
     type: object
-    values:
+    things:
       - FGT-E2-C-SNT-AP-10.184.224.224_27-NSG
       - FGT-E2-C-SNT-DS-10.184.224.128_27-NSG
       - FGT-E2-C-SNT-FS-10.184.224.160_27-NSG
