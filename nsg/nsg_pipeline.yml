@@ -4,12 +4,13 @@ parameters:
   - name: nsgList
     displayName: 'Network Security Groups to update'
     type: object
-    things:
-      - FGT-E2-C-SNT-AP-10.184.224.224_27-NSG
-      - FGT-E2-C-SNT-DS-10.184.224.128_27-NSG
-      - FGT-E2-C-SNT-FS-10.184.224.160_27-NSG
-      - FGT-E2-C-SNT-JP-10.184.225.0_27-NSG
-      - FGT-E2-C-SNT-RP-10.184.224.192_27-NSG
+    default:
+      things:
+        - FGT-E2-C-SNT-AP-10.184.224.224_27-NSG
+        - FGT-E2-C-SNT-DS-10.184.224.128_27-NSG
+        - FGT-E2-C-SNT-FS-10.184.224.160_27-NSG
+        - FGT-E2-C-SNT-JP-10.184.225.0_27-NSG
+        - FGT-E2-C-SNT-RP-10.184.224.192_27-NSG
   - name: subscription
     displayName: 'Subscription to deploy to'
     type: string
