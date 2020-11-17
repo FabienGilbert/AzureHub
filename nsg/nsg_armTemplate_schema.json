@@ -1,19 +1,33 @@
 {
+  "id": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsg_armTemplate_schema.json#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "NSG Template at subscription scope",
+  "description": "A Network Security Group deployment template at subscription scope",
+  "type": "object",
   "properties": {
     "$schema": {
-      "type": "string"
+      "type": "string",
+      "description": "JSON schema reference"
     },
     "contentVersion": {
-      "type": "string"
+      "type": "string",
+      "pattern": "(^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$)",
+      "description": "A 4 number format for the version number of this template file. For example, 1.0.0.0"
     },
     "parameters": {
-      "type": "object"
+      "type": "object",
+      "description": "Input parameter definitions",
+      "additionalProperties": {
+        "$ref": "#/definitions/parameter"
+      }
     },
     "variables": {
       "type": "object",
+      "description": "Variable definitions",
       "properties": {
         "securityRules": {
           "type": "object",
+          "description": "Network Security Group Security Rules",
           "properties": {
             "value": {
               "type": "array",
@@ -234,8 +248,37 @@
         "securityRules"
       ]
     },
+    "functions": {
+        "type": "array",
+        "items": {
+            "$ref": "#/definitions/functionNamespace"
+        },
+        "description": "User defined functions"
+    },
     "resources": {
-      "type": "array"
+        "type": "array",
+        "description": "Collection of resources to be deployed",
+        "items": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/resourceBase"
+                },
+                {
+                    "oneOf": [
+                        {
+                            "$ref": "https://schema.management.azure.com/schemas/2019-08-01/Microsoft.Resources.json#/subscription_resourceDefinitions/deployments"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "outputs": {
+        "type": "object",
+        "description": "Output parameter definitions",
+        "additionalProperties": {
+            "$ref": "#/definitions/output"
+        }
     }
   },
   "required": [
