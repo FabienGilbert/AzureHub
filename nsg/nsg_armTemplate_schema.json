@@ -236,14 +236,14 @@
     },
     "resources": {
       "type": "array"
-    },
-    "required": [
-      "$schema",
-      "contentVersion",
-      "parameters",
-      "variables",
-      "resources"
-    ],
-    "additionalProperties": false
-  }
+    }
+  },
+  "required": [
+    "$schema",
+    "contentVersion",
+    "parameters",
+    "variables",
+    "resources"
+  ],
+  "additionalProperties": false
 }
