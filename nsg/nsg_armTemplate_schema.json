@@ -235,11 +235,7 @@
                 ],
                 "additionalProperties": false
               }
-            },
-            "required": [
-              "value"
-            ],
-            "additionalProperties": false
+            }
           },
           "additionalProperties": false
         }
@@ -275,10 +271,7 @@
     },
     "outputs": {
         "type": "object",
-        "description": "Output parameter definitions",
-        "additionalProperties": {
-            "$ref": "#/definitions/output"
-        }
+        "description": "Output parameter definitions"
     }
   },
   "required": [
