@@ -44,7 +44,6 @@ jobs:
             overrideParameters: '-addsSubnetPrefix $(addsSubnetPrefix)
                                  -adfsSubnetPrefix $(adfsSubnetPrefix)
                                  -allowedOnPremsPublicIps $(allowedOnPremsPublicIps)
-                                 -appGatewaySubnetPrefix $(appGatewaySubnetPrefix)
                                  -applicationTag $(applicationTag)
                                  -appSubnetPrefix $(appSubnetPrefix)
                                  -dnsServers $(dnsServers)
