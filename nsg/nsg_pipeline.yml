@@ -23,7 +23,7 @@ variables:
 - group: HubScaffolding
 
 jobs:
-  - ${{ each nsg in parameters.nsgTierList }}:
+  - ${{ each nsgTier in parameters.nsgTierList }}:
     - job: "${{ nsgTier }}_NSG"
 
       steps:
