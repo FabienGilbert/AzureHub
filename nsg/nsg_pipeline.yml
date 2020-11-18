@@ -1,21 +1,17 @@
 # Deploys indicated VM resources to target subsription
 
 parameters:
-  - name: nsgList
-    displayName: 'Network Security Groups to update'
+  - name: nsgTierList
+    displayName: 'Network Security Group Tiers to update'
     type: object
     default:
-      - FGT-E2-C-SNT-AP-10.184.224.224_27-NSG
-      - FGT-E2-C-SNT-DS-10.184.224.128_27-NSG
-      - FGT-E2-C-SNT-FS-10.184.224.160_27-NSG
-      - FGT-E2-C-SNT-JP-10.184.225.0_27-NSG
-      - FGT-E2-C-SNT-RP-10.184.224.192_27-NSG
-  - name: subscription
-    displayName: 'Subscription to deploy to'
-    type: string
-    values:
-     - FGT-HUB-SUB-01
-     - FGT-LAB-SUB-02
+      - ap
+      - db 
+      - ds
+      - ed
+      - fs
+      - jp
+      - rp
 
 trigger: none
 
@@ -23,9 +19,12 @@ pool:
   name: Azure Pipelines
   vmImage: 'windows-2019'
 
+variables:
+- group: HubScaffolding
+
 jobs:
-  - ${{ each nsg in parameters.nsgList }}:
-    - job: "_${{ nsg }}"
+  - ${{ each nsg in parameters.nsgTierList }}:
+    - job: "${{ nsgTier }}_NSG"
 
       steps:
         - checkout: self
@@ -33,14 +32,27 @@ jobs:
 
         # Deploy Azure Resources using ARM template
         - task: AzureResourceManagerTemplateDeployment@3
-          displayName: 'Deploy Network Security Group'
+          displayName: "Deploy ${{ nsgTier }} NSG"
           enabled: true
           continueOnError: true
           inputs:            
-            deploymentScope: 'Resource Group'
+            deploymentScope: 'Subscription'
             azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
             subscriptionid: '$(subscriptionId)'
-            resourceGroupName: 'FGT-E2-C-NSG-RGP-S01'
-            location: 'EastUS2'
-            csmFile: 'scaffolding/hubScaffolding_armTemplate.json'
-            overrideParameters: ''
+            location: '$(location)'
+            csmFile: "nsg/${{ nsgTier }}_nsg_armTemplate.json"
+            overrideParameters: '-addsSubnetPrefix $(addsSubnetPrefix)
+                                 -adfsSubnetPrefix $(adfsSubnetPrefix)
+                                 -allowedOnPremsPublicIps $(allowedOnPremsPublicIps)
+                                 -appGatewaySubnetPrefix $(appGatewaySubnetPrefix)
+                                 -applicationTag $(applicationTag)
+                                 -appSubnetPrefix $(appSubnetPrefix)
+                                 -dnsServers $(dnsServers)
+                                 -EnterprisePrefix $(EnterprisePrefix)
+                                 -EnvironmentPrefix $(EnvironmentPrefix)
+                                 -environmentTag $(environmentTag)                                
+                                 -jumpSrvSubnetPrefix $(jumpSrvSubnetPrefix)
+                                 -LogWksRegionPrefix $(LogWksRegionPrefix)
+                                 -RegionPrefix $(RegionPrefix)
+                                 -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
+                                 -wapSubnetPrefix $(wapSubnetPrefix)'
