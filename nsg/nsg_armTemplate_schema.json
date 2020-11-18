@@ -258,13 +258,6 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/resourceBase"
-                },
-                {
-                    "oneOf": [
-                        {
-                            "$ref": "https://schema.management.azure.com/schemas/2019-08-01/Microsoft.Resources.json#/subscription_resourceDefinitions/deployments"
-                        }
-                    ]
                 }
             ]
         }
