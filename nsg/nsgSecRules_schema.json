@@ -6,7 +6,7 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "securityRules": {
+        "securityRulesDefinition": {
           "type": "object",
           "properties": {
             "value": {
@@ -196,7 +196,7 @@
         }
       },
       "required": [
-        "securityRules"
+        "securityRulesDefinition"
       ],
       "additionalProperties": false
     },
