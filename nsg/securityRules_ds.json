@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "$schema": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsgSecRules_schema.json",
   "parameters": {
     "securityRulesDefinition": {
       "value": [
