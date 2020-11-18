@@ -1,0 +1,204 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "RegionPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the Region prefix that will be added to all Resource Group and Resource names."
+            }
+        },
+        "LogWksRegionPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the Region prefix that will be added to the Log Analytics Resource Group."
+            }
+        },
+        "EnterprisePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the enterpise prefix that will be added to all Resource Group and Resource names.."
+            }
+        },
+        "EnvironmentPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the environment prefix that will be added to all Resource Group and Resource names.."
+            },
+            "allowedValues": [
+                "C",
+                "D",
+                "T",
+                "L"
+            ]
+        },
+        "SubscriptionOrdinalPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
+            }
+        },
+        "firewallSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Firewall VNET subnet prefix."
+            }
+        },
+        "addsSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "AD FS VNET subnet prefix."
+            }
+        },
+        "jumpSrvSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Jump server VNET subnet prefix."
+            }
+        },
+        "environmentSupernet": {
+            "type": "string",
+            "metadata": {
+                "description": "Supernet that includes all subnets in use in the environment."
+            }
+        },
+        "adfsSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Edge VNET subnet prefix."
+            }
+        },
+        "appSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "App VNET subnet prefix."
+            }
+        },
+        "wapSubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Web Application Proxy VNET subnet prefix."
+            }
+        },
+        "dnsServers": {
+            "type": "array",
+            "metadata": {
+                "description": "DNS Servers that will be configured in the VNET."
+            }
+        },
+        "allowedOnPremsPublicIps": {
+            "type": "array",
+            "metadata": {
+                "description": "On-premises Public IP Addresses allowed to connect through resources' firewall"
+            },
+            "defaultValue": []
+        },
+        "applicationTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Application tag"
+            }
+        },
+        "environmentTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment Resource Tag"
+            },
+            "allowedValues": [
+                "Core",
+                "Dev",
+                "Test",
+                "Lab"
+            ]
+        },
+        "securityRulesDefinition": {
+            "type": "array",
+            "metadata": {
+                "description": "Security Rules Definition"
+            }
+        }
+    },
+    "variables": {
+        "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
+        "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
+        "nsgRgp": "[concat(variables('leftPrefix'),'NSG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+        "nsgName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('addsSubnetPrefix'), '/', '_'), '-NSG')]",
+        "nsgTags": {
+            "Component": "Network Security Group",
+            "Application": "[parameters('applicationTag')]",
+            "Environment": "[parameters('environmentTag')]"
+        },
+        "logRgp": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+        "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
+        "copy": [
+            {
+                "name": "securityRules",
+                "count": "[length(parameters('securityRulesDefinition'))]",
+                "input": {
+                    "direction": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].direction]",
+                    "priority": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].priority]",
+                    "name": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].name]",
+                    "description": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].description]",
+                    "access": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].access]",
+                    "protocol": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].protocol]",
+                    "sourceAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.value)]",
+                    "destinationAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.value)]",
+                    "sourcePortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].sourcePortRanges]",
+                    "destinationPortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationPortRanges]"
+                }
+            },
+            {
+                "name": "deploymentSecurityRules",
+                "count": "[length(variables('securityRules'))]",
+                "input": {
+                    "direction": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].direction]",
+                    "priority": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].priority]",
+                    "name": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].name]",
+                    "description": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].description]",
+                    "access": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].access]",
+                    "protocol": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].protocol]",
+                    "sourceAddressPrefix": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes[0], json('null'))]",
+                    "sourceAddressPrefixes": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes, json('[]'))]",
+                    "destinationAddressPrefix": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes[0], json('null'))]",
+                    "destinationAddressPrefixes": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes, json('[]'))]",
+                    "sourcePortRange": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges[0], json('null'))]",
+                    "sourcePortRanges": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges, json('[]'))]",
+                    "destinationPortRange": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges[0], json('null'))]",
+                    "destinationPortRanges": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges, json('[]'))]"
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat('hubNsg_', variables('nsgName'))]",
+            "resourceGroup": "[variables('nsgRgp')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsg_armTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "networkSecurityGroupName": {
+                        "value": "[variables('nsgName')]"
+                    },
+                    "securityRules": {
+                        "value": "[variables('deploymentSecurityRules')]"
+                    },
+                    "logAnalyticsWorkspaceResourceGroup": {
+                        "value": "[variables('logRgp')]"
+                    },
+                    "logAnalyticsWorkspaceName": {
+                        "value": "[variables('logWksName')]"
+                    },
+                    "tags": {
+                        "value": "[variables('nsgTags')]"
+                    }
+                }
+            }
+        }
+    ]
+}
