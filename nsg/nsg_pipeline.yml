@@ -50,6 +50,7 @@ jobs:
                                  -dnsServers $(dnsServers)
                                  -EnterprisePrefix $(EnterprisePrefix)
                                  -EnvironmentPrefix $(EnvironmentPrefix)
+                                 -environmentSupernet $(environmentSupernet)
                                  -environmentTag $(environmentTag)  
                                  -firewallSubnetPrefix $(firewallSubnetPrefix)                              
                                  -jumpSrvSubnetPrefix $(jumpSrvSubnetPrefix)
