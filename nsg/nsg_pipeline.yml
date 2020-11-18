@@ -40,7 +40,8 @@ jobs:
             azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
             subscriptionid: '$(subscriptionId)'
             location: '$(location)'
-            csmFile: "nsg/${{ nsgTier }}_nsg_armTemplate.json"
+            csmFile: "nsg/nsgSecRules_armTemplate.json"            
+            csmParametersFile: "nsg/securityRules_${{ nsgTier }}.json"    
             overrideParameters: '-addsSubnetPrefix $(addsSubnetPrefix)
                                  -adfsSubnetPrefix $(adfsSubnetPrefix)
                                  -allowedOnPremsPublicIps $(allowedOnPremsPublicIps)
