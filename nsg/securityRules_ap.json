@@ -1,0 +1,253 @@
+{
+  "$schema": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsgSecRules_schema.json",
+  "parameters": {
+    "securityRulesDefinition": {
+      "value": [
+        {
+          "direction": "inbound",
+          "priority": 200,
+          "name": "AllowInBoundIntraSubnetTraffic",
+          "description": "Allow InBound Intra-Subnet Traffic InBound",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "parameter": "appSubnetPrefix"
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 210,
+          "name": "AllowJumpServersInBound",
+          "description": "Allow Jump Servers InBound",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "parameter": "jumpSrvSubnetPrefix"            
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 1980,
+          "name": "DenyInBoundVnetUDP",
+          "description": "Deny Inbound UDP Traffic from all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]            
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 1990,
+          "name": "DenyInBoundVnetTCP",
+          "description": "Deny Inbound TCP Traffic from all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 200,
+          "name": "AllowOutBoundIntraSubnetTraffic",
+          "description": "Allow OutBound Intra-Subnet Traffic InBound",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "appSubnetPrefix"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },        
+        {
+          "direction": "outbound",
+          "priority": 220,
+          "name": "AllowOutBoundActiveDirectoryTCP",
+          "description": "Allow OutBound Active Directory TCP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "addsSubnetPrefix"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "135",
+            "137-139",
+            "389",
+            "445",
+            "464",
+            "636",
+            "3268",
+            "3269",
+            "49152-65535"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 230,
+          "name": "AllowOutBoundActiveDirectoryUDP",
+          "description": "Allow OutBound Active Directory UDP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "addsSubnetPrefix"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "123",
+            "137-139",
+            "389",
+            "464",
+            "49152-65535"
+          ] 
+        },
+        {
+          "direction": "outbound",
+          "priority": 250,
+          "name": "AllowOutBoundADFS",
+          "description": "Allow OutBound HTTPS traffic to ADFS servers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "adfsSubnetPrefix"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "443"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 1980,
+          "name": "DenyOutBoundVnetTCP",
+          "description": "Deny Outbound TCP Traffic to all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 1990,
+          "name": "DenyOutBoundVnetUDP",
+          "description": "Deny Outbound UDP Traffic to all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        }
+      ]
+    }
+  }
+}
