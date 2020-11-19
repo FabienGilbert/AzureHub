@@ -179,7 +179,7 @@
         },
         {
           "direction": "outbound",
-          "priority": 240,
+          "priority": 250,
           "name": "AllowOutBoundADFS",
           "description": "Allow OutBound HTTPS traffic to ADFS servers",
           "access": "allow",
