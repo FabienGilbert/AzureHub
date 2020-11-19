@@ -38,6 +38,12 @@
                 "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
             }
         },
+        "environmentSupernet": {
+            "type": "string",
+            "metadata": {
+                "description": "Supernet that includes all subnets in use in the environment."
+            }
+        },
         "subnetPrefixAG": {
             "type": "string",
             "metadata": {
