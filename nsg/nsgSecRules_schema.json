@@ -57,73 +57,69 @@
                   },
                   "sourceAddressPrefixes": {
                     "type": "object",
-                    "items": {
-                      "properties": {
-                        "parameter": {
-                          "type": "string",
-                          "description": "Name of the ARM Template parameter that contains the Source Address Prefix(es) value"
-                        },
-                        "value": {
-                          "type": "array",
-                          "description": "Direct source address prefix value. One or several source address tags or IP addresses",
-                          "default": [],
-                          "examples": [
-                            [
-                              "Internet"
-                            ],
-                            [
-                              "VirtualNetwork"
-                            ],
-                            [
-                              "AzureLoadBalancer"
-                            ],
-                            [
-                              "10.234.167.0/24"
-                            ],
-                            [
-                              "10.231.167.0/24",
-                              "10.232.167.0/24"
-                            ]
-                          ]
-                        }
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "description": "Name of the ARM Template parameter that contains the Source Address Prefix(es) value"
                       },
-                      "additionalProperties": false
-                    }
+                      "value": {
+                        "type": "array",
+                        "description": "Direct source address prefix value. One or several source address tags or IP addresses",
+                        "default": [],
+                        "examples": [
+                          [
+                            "Internet"
+                          ],
+                          [
+                            "VirtualNetwork"
+                          ],
+                          [
+                            "AzureLoadBalancer"
+                          ],
+                          [
+                            "10.234.167.0/24"
+                          ],
+                          [
+                            "10.231.167.0/24",
+                            "10.232.167.0/24"
+                          ]
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "destinationAddressPrefixes": {
                     "type": "object",
-                    "items": {
-                      "properties": {
-                        "parameter": {
-                          "type": "string",
-                          "description": "Name of the ARM Template parameter that contains the Destination Address Prefix(es) value"
-                        },
-                        "value": {
-                          "type": "array",
-                          "description": "Direct destination address prefix value. One or several destination address tags or IP addresses",
-                          "default": [],
-                          "examples": [
-                            [
-                              "Internet"
-                            ],
-                            [
-                              "VirtualNetwork"
-                            ],
-                            [
-                              "AzureLoadBalancer"
-                            ],
-                            [
-                              "10.234.167.0/24"
-                            ],
-                            [
-                              "10.231.167.0/24",
-                              "10.232.167.0/24"
-                            ]
-                          ]
-                        }
+                    "properties": {
+                      "parameter": {
+                        "type": "string",
+                        "description": "Name of the ARM Template parameter that contains the Destination Address Prefix(es) value"
                       },
-                      "additionalProperties": false
-                    }
+                      "value": {
+                        "type": "array",
+                        "description": "Direct destination address prefix value. One or several destination address tags or IP addresses",
+                        "default": [],
+                        "examples": [
+                          [
+                            "Internet"
+                          ],
+                          [
+                            "VirtualNetwork"
+                          ],
+                          [
+                            "AzureLoadBalancer"
+                          ],
+                          [
+                            "10.234.167.0/24"
+                          ],
+                          [
+                            "10.231.167.0/24",
+                            "10.232.167.0/24"
+                          ]
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "sourcePortRanges": {
                     "type": "array",
