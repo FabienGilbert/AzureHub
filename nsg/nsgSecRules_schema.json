@@ -46,6 +46,15 @@
                     ],
                     "description": "allow or deny traffic."
                   },
+                  "protocol": {
+                    "type": "string",
+                    "description": "Protocol the rule is applying to",
+                    "enum": [
+                      "tcp",
+                      "udp",
+                      "*"
+                    ]
+                  },
                   "sourceAddressPrefixes": {
                     "type": "object",
                     "items": {
