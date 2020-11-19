@@ -184,84 +184,84 @@
     },
     "deployRgp": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Resource Groups"
       }
     },
     "deployLws": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Log Analytics Workspace"
       }
     },    
     "deployUdr": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy User Defined Routes"
       }
     },    
     "deployNsg": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Network Security Groups"
       }
     },    
     "deployVnt": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Virtual Network"
       }
     },    
     "deployAkv": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Key Vaults"
       }
     },    
     "deploySta": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Storage Accounts"
       }
     },   
     "deployNsf": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy NSG Flow Logs"
       }
     },  
     "deployAua": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Automation Account"
       }
     },
     "deployPip": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Public IP Prefix"
       }
     },    
     "deployPia": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Public IP Addresses"
       }
     },      
     "deployAfw": {
       "type": "string",
-      "defaultValue": true,
+      "defaultValue": "True",
       "metadata": {
         "description": "Deploy Azure Firewall"
       }
@@ -626,7 +626,7 @@
     {
       "type": "Microsoft.Resources/resourceGroups",
       "name": "[variables('resourceGroups')[copyIndex('rgpLoop')].name]",
-      "condition": "[equals(parameters('deployRgp'), 'true')]",
+      "condition": "[equals(parameters('deployRgp'), 'True')]",
       "copy": {
         "name": "rgpLoop",
         "count": "[length(variables('resourceGroups'))]"
@@ -640,7 +640,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('logWks_', variables('logWksName'))]",
-      "condition": "[equals(parameters('deployLws'), 'true')]",
+      "condition": "[equals(parameters('deployLws'), 'True')]",
       "dependsOn": [
         "rgpLoop"
       ],
@@ -675,7 +675,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubUdr_', variables('subnets')[copyIndex('udrLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].nsgUdr, json('true')), equals(parameters('deployUdr'), 'true'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].nsgUdr, json('true')), equals(parameters('deployUdr'), 'True'))]",
       "dependsOn": [
         "rgpLoop"
       ],
@@ -708,7 +708,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubNsg_', variables('subnets')[copyIndex('nsgLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsgUdr, json('true')), equals(parameters('deployNsg'), 'true'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsgUdr, json('true')), equals(parameters('deployNsg'), 'True'))]",
       "dependsOn": [
         "[concat('logWks_', variables('logWksName'))]"
       ],
@@ -747,7 +747,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubVnet_', variables('vnetName'))]",
-      "condition": "[equals(parameters('deployVnt'), 'true')]",
+      "condition": "[equals(parameters('deployVnt'), 'True')]",
       "resourceGroup": "[variables('netRgp')]",
       "dependsOn": [
         "udrLoop",
@@ -792,7 +792,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('keyVault_', variables('keyVaults')[copyIndex('keyVaultLoop')].name)]",
-      "condition": "[equals(parameters('deployAkv'), 'true')]",
+      "condition": "[equals(parameters('deployAkv'), 'True')]",
       "dependsOn": [
         "[concat('hubVnet_', variables('vnetName'))]"
       ],
@@ -848,7 +848,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('storageAccount_', variables('storageAccounts')[copyIndex('storeLoop')].name)]",
-      "condition": "[equals(parameters('deploySta'), 'true')]",
+      "condition": "[equals(parameters('deploySta'), 'True')]",
       "dependsOn": [
         "[concat('hubVnet_', variables('vnetName'))]"
       ],
@@ -892,7 +892,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubNsgFlowLog_', variables('subnets')[copyIndex('nsgFlowLogLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsgUdr, json('true')), equals(parameters('deployNsf'), 'true'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsgUdr, json('true')), equals(parameters('deployNsf'), 'True'))]",
       "dependsOn": [
         "storeLoop"
       ],
@@ -927,7 +927,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('automationAccount_', variables('automationAccountName'))]",
-      "condition": "[equals(parameters('deployAua'), 'true')]",
+      "condition": "[equals(parameters('deployAua'), 'True')]",
       "dependsOn": [
         "[concat('logWks_', variables('logWksName'))]"
       ],
@@ -965,7 +965,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]",
-      "condition": "[equals(parameters('deployPip'), 'true')]",
+      "condition": "[equals(parameters('deployPip'), 'True')]",
       "dependsOn": [
         "rgpLoop"
       ],
@@ -1000,7 +1000,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('publicIpAddresses_', variables('publicIpAddresses')[copyIndex('publicIpLoop')].name)]",
-      "condition": "[equals(parameters('deployPia'), 'true')]",
+      "condition": "[equals(parameters('deployPia'), 'True')]",
       "dependsOn": [
         "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]"
       ],
@@ -1042,7 +1042,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubFirewall_', variables('firewallName'))]",
-      "condition": "[equals(parameters('deployAfw'), 'true')]",
+      "condition": "[equals(parameters('deployAfw'), 'True')]",
       "resourceGroup": "[variables('netRgp')]",
       "dependsOn": [
         "publicIpLoop"
