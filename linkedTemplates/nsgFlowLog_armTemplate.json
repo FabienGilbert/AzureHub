@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "nsgRgp": {
+            "type": "string",
+            "metadata": {
+                "description": "Network Security Group Resource Group"
+            }
+        },
+        "nsgName": {
+            "type": "string",
+            "metadata": {
+                "description": "Network Security Group Name"
+            }
+        },
+        "storeName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage Account Name"
+            }
+        },
+        "retentionDays": {
+            "type": "int",
+            "metadata": {
+                "description": "Number of days of retention"
+            },
+            "defaultValue": 1
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[concat('NetworkWatcher_', parameters('location'), '/Microsoft.Network', parameters('nsgName'))]",
+            "type": "Microsoft.Network/networkWatchers/FlowLogs/",
+            "location": "[parameters('location')]",
+            "apiVersion": "2019-09-01",
+            "properties": {
+                "targetResourceId": "[resourceId(parameters('nsgRgp'),'Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]",
+                "storageId": "[resourceId(parameters('nsgRgp'),'Microsoft.Storage/storageAccounts', parameters('storeName'))]",
+                "enabled": true,
+                "flowAnalyticsConfiguration": {},
+                "retentionPolicy": {
+                    "days": "[parameters('retentionDays')]",
+                    "enabled": true
+                },
+                "format": {
+                    "type": "JSON",
+                    "version": 2
+                }
+            }
+
+        }
+    ],
+    "outputs": {}
+}
