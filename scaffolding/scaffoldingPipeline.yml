@@ -1,5 +1,55 @@
 # Deploys hub scaffolding for the specified environment
 
+parameters:
+  - name: deployRgp
+    displayName: 'deploy Resource Groups'
+    type: boolean
+    default: true
+  - name: deployLws
+    displayName: 'deploy Log Analytics Workspace'
+    type: boolean
+    default: true
+  - name: deployUdr
+    displayName: 'deploy UDRs'
+    type: boolean
+    default: true
+  - name: deployNsg
+    displayName: 'deploy NSGs'
+    type: boolean
+    default: true
+  - name: deployVnt
+    displayName: 'deploy VNET'
+    type: boolean
+    default: true
+  - name: deployAkv
+    displayName: 'deploy Key Vaults'
+    type: boolean
+    default: true
+  - name: deploySta
+    displayName: 'deploy Storage Accounts'
+    type: boolean
+    default: true
+  - name: deployNsf
+    displayName: 'deploy NSG Flow Logs'
+    type: boolean
+    default: true
+  - name: deployAua
+    displayName: 'deploy Automation Account'
+    type: boolean
+    default: true
+  - name: deployPip
+    displayName: 'deploy Public IP Prefix'
+    type: boolean
+    default: true
+  - name: deployPia
+    displayName: 'deploy Public IP Addresses'
+    type: boolean
+    default: true
+  - name: deployAfw
+    displayName: 'deploy Firewall'
+    type: boolean
+    default: true
+
 trigger: none
 
 pool:
@@ -52,4 +102,16 @@ steps:
                          -subnetPrefixVG $(subnetPrefixVG)
                          -subscriptionId $(subscriptionId)
                          -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
-                         -tenantId $(tenantId)'
+                         -tenantId $(tenantId)
+                         -deployAfw $(deployAfw)
+                         -deployAkv $(deployAkv)
+                         -deployAua $(deployAua)
+                         -deployLws $(deployLws)
+                         -deployNsf $(deployNsf)
+                         -deployNsg $(deployNsg)
+                         -deployPia $(deployPia)
+                         -deployPip $(deployPip)
+                         -deployRgp $(deployRgp)
+                         -deploySta $(deploySta)
+                         -deployUdr $(deployUdr)
+                         -deployVnt $(deployVnt)'
