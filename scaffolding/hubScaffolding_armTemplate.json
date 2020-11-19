@@ -68,52 +68,52 @@
         "description": "Address Prefixes that will be configured into the VNET."
       }
     },
-    "gatewaySubnetPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Gateway VNET subnet prefix."
-      }
-    },
-    "appGatewaySubnetPrefix": {
+    "subnetPrefixAG": {
       "type": "string",
       "metadata": {
         "description": "AppGateway VNET subnet prefix."
       }
     },
-    "firewallSubnetPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Azure Firewall VNET subnet prefix."
-      }
-    },
-    "addsSubnetPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "AD FS VNET subnet prefix."
-      }
-    },
-    "jumpSrvSubnetPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Jump server VNET subnet prefix."
-      }
-    },
-    "adfsSubnetPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Edge VNET subnet prefix."
-      }
-    },
-    "appSubnetPrefix": {
+    "subnetPrefixAP": {
       "type": "string",
       "metadata": {
         "description": "App VNET subnet prefix."
       }
     },
-    "wapSubnetPrefix": {
+    "subnetPrefixDS": {
+      "type": "string",
+      "metadata": {
+        "description": "AD Domain Services VNET subnet prefix."
+      }
+    },
+    "subnetPrefixFS": {
+      "type": "string",
+      "metadata": {
+        "description": "AD Federation Services VNET subnet prefix."
+      }
+    },
+    "subnetPrefixFW": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Firewall VNET subnet prefix."
+      }
+    },
+    "subnetPrefixJP": {
+      "type": "string",
+      "metadata": {
+        "description": "Jump server VNET subnet prefix."
+      }
+    },
+    "subnetPrefixRP": {
       "type": "string",
       "metadata": {
         "description": "Web Application Proxy VNET subnet prefix."
+      }
+    },
+    "subnetPrefixVG": {
+      "type": "string",
+      "metadata": {
+        "description": "VNET Gateway subnet prefix."
       }
     },
     "dnsServers": {
@@ -290,60 +290,61 @@
     ],
     "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
     "automationAccountName": "[concat(variables('leftPrefix'),'AUTO-',parameters('SubscriptionOrdinalPrefix'))]",
+    "nsgStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'nsgstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
     "firewallName": "[concat(variables('leftPrefix'),'FW-',parameters('SubscriptionOrdinalPrefix'))]",
     "firewallSubnetName": "AzureFirewallSubnet",
     "firewallIpName": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
-    "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('addsSubnetPrefix'), '/', '_'))]",
-    "jumpSubnetName": "[concat(variables('leftPrefix'), 'SNT-JP-', replace(parameters('jumpSrvSubnetPrefix'), '/', '_'))]",
-    "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('adfsSubnetPrefix'), '/', '_'))]",
-    "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('appSubnetPrefix'), '/', '_'))]",
-    "wapSubnetName": "[concat(variables('leftPrefix'), 'SNT-RP-', replace(parameters('wapSubnetPrefix'), '/', '_'))]",
+    "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('subnetPrefixDS'), '/', '_'))]",
+    "jumpSubnetName": "[concat(variables('leftPrefix'), 'SNT-JP-', replace(parameters('subnetPrefixJP'), '/', '_'))]",
+    "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('subnetPrefixFS'), '/', '_'))]",
+    "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "wapSubnetName": "[concat(variables('leftPrefix'), 'SNT-RP-', replace(parameters('subnetPrefixRP'), '/', '_'))]",
     "subnets": [
       {
         "name": "GatewaySubnet",
-        "ipPrefix": "[parameters('gatewaySubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixVG')]",
         "nsgUdr": false,
         "serviceEndpoints": false
       },
       {
         "name": "AppGatewaySubnet",
-        "ipPrefix": "[parameters('appGatewaySubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixAG')]",
         "nsgUdr": false,
         "serviceEndpoints": false
       },
       {
         "name": "[variables('firewallSubnetName')]",
-        "ipPrefix": "[parameters('firewallSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixFW')]",
         "nsgUdr": false,
         "serviceEndpoints": false
       },
       {
         "name": "[variables('addsSubnetName')]",
-        "ipPrefix": "[parameters('addsSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixDS')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       },
       {
         "name": "[variables('adfsSubnetName')]",
-        "ipPrefix": "[parameters('adfsSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixFS')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       },
       {
         "name": "[variables('wapSubnetName')]",
-        "ipPrefix": "[parameters('wapSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixRP')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       },
       {
         "name": "[variables('jumpSubnetName')]",
-        "ipPrefix": "[parameters('jumpSrvSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixJP')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       },
       {
         "name": "[variables('appSubnetName')]",
-        "ipPrefix": "[parameters('appSubnetPrefix')]",
+        "ipPrefix": "[parameters('subnetPrefixAP')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       }
@@ -499,7 +500,7 @@
       },
       {
         "resourceGroup": "[variables('nsgRgp')]",
-        "name": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'nsgstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
+        "name": "[variables('nsgStoreName')]",
         "sku": "Standard_LRS",
         "tier": "Cool",
         "networkAclDefaultAction": "deny",
@@ -511,7 +512,7 @@
         }
       }
     ],
-    "publicIpZone": ["1"],
+    "publicIpZone": [ "1" ],
     "publicIpPrefixName": "[concat(variables('leftPrefix'),'IPPRFX-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
     "publicIpPrefixSize": 30,
     "publicIpAddresses": [
@@ -794,6 +795,41 @@
           },
           "tags": {
             "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubNsgFlowLog_', variables('subnets')[copyIndex('nsgLoop')].name)]",
+      "condition": "[equals(variables('subnets')[copyIndex('nsgLoop')].nsgUdr, json('true'))]",
+      "dependsOn": [
+        "storeLoop"
+      ],
+      "copy": {
+        "name": "nsgFlowLogLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "NetworkWatcherRG",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsgFlowLog_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "nsgRgp": {
+            "value": "[variables('nsgRgp')]"
+          },
+          "nsgName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgLoop')].name, '-NSG')]"
+          },
+          "storeName": {
+            "value": "[variables('nsgStoreName')]"
           }
         }
       }
