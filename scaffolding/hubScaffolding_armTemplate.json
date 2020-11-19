@@ -622,27 +622,459 @@
       }
     ]
   },
-  "resources": [],
-  "outputs": {
-    "deployRgp": {
-      "type": "string",
-      "value": "[parameters('deployRgp')]"
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "[variables('resourceGroups')[copyIndex('rgpLoop')].name]",
+      "condition": "[equals(parameters('deployRgp'), 'true')]",
+      "copy": {
+        "name": "rgpLoop",
+        "count": "[length(variables('resourceGroups'))]"
+      },
+      "apiVersion": "2020-06-01",
+      "location": "[variables('resourceGroups')[copyIndex('rgpLoop')].location]",
+      "tags": "[variables('resourceGroups')[copyIndex('rgpLoop')].tags]",
+      "properties": {}
     },
-    "deployLws": {
-      "type": "string",
-      "value": "[parameters('deployLws')]"
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('logWks_', variables('logWksName'))]",
+      "condition": "[equals(parameters('deployLws'), 'true')]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "resourceGroup": "[variables('logRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/logAnalyticsWorkspace_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "serviceTier": {
+            "value": "[parameters('logAnalyticsTier')]"
+          },
+          "dataRetention": {
+            "value": "[parameters('logAnalyticsRetention')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Log Analytics Workspace",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
     },
-    "deployUdr": {
-      "type": "string",
-      "value": "[parameters('deployUdr')]"
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubUdr_', variables('subnets')[copyIndex('udrLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].nsgUdr, json('true')), equals(parameters('deployUdr'), 'true'))]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "copy": {
+        "name": "udrLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/udr_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "routeTableName": {
+            "value": "[concat(variables('subnets')[copyIndex('udrLoop')].name, '-UDR')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Route Table",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
     },
-    "deployNsg": {
-      "type": "string",
-      "value": "[parameters('deployNsg')]"
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubNsg_', variables('subnets')[copyIndex('nsgLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsgUdr, json('true')), equals(parameters('deployNsg'), 'true'))]",
+      "dependsOn": [
+        "[concat('logWks_', variables('logWksName'))]"
+      ],
+      "copy": {
+        "name": "nsgLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('nsgRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsg_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "networkSecurityGroupName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgLoop')].name, '-NSG')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Network Security Group",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
     },
-    "deployVnt": {
-      "type": "string",
-      "value": "[parameters('deployVnt')]"
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubVnet_', variables('vnetName'))]",
+      "condition": "[equals(parameters('deployVnt'), 'true')]",
+      "resourceGroup": "[variables('netRgp')]",
+      "dependsOn": [
+        "udrLoop",
+        "nsgLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/vnet_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "addressPrefixes": {
+            "value": "[parameters('addressPrefixes')]"
+          },
+          "subnets": {
+            "value": "[variables('vnetSubnets')]"
+          },
+          "dnsServers": {
+            "value": "[parameters('dnsServers')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Virtual Network",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('keyVault_', variables('keyVaults')[copyIndex('keyVaultLoop')].name)]",
+      "condition": "[equals(parameters('deployAkv'), 'true')]",
+      "dependsOn": [
+        "[concat('hubVnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "keyVaultLoop",
+        "count": "[length(variables('keyVaults'))]"
+      },
+      "resourceGroup": "[variables('akvRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/keyVault_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].name]"
+          },
+          "enableVaultForDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDeployment]"
+          },
+          "enableVaultForDiskEncryption": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDiskEncryption]"
+          },
+          "enabledForTemplateDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enabledForTemplateDeployment]"
+          },
+          "accessPolicies": {
+            "value": "[variables('keyVaultAccessPolicy')]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('storageAccount_', variables('storageAccounts')[copyIndex('storeLoop')].name)]",
+      "condition": "[equals(parameters('deploySta'), 'true')]",
+      "dependsOn": [
+        "[concat('hubVnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "storeLoop",
+        "count": "[length(variables('storageAccounts'))]"
+      },
+      "resourceGroup": "[variables('storageAccounts')[copyIndex('storeLoop')].resourceGroup]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/storageAccount_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "StorageAccountName": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].name]"
+          },
+          "StorageAccountTier": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tier]"
+          },
+          "StorageAccountSku": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].sku]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "tags": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubNsgFlowLog_', variables('subnets')[copyIndex('nsgFlowLogLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsgUdr, json('true')), equals(parameters('deployNsf'), 'true'))]",
+      "dependsOn": [
+        "storeLoop"
+      ],
+      "copy": {
+        "name": "nsgFlowLogLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "NetworkWatcherRG",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsgFlowLog_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "nsgRgp": {
+            "value": "[variables('nsgRgp')]"
+          },
+          "nsgName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgFlowLogLoop')].name, '-NSG')]"
+          },
+          "storeName": {
+            "value": "[variables('nsgStoreName')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('automationAccount_', variables('automationAccountName'))]",
+      "condition": "[equals(parameters('deployAua'), 'true')]",
+      "dependsOn": [
+        "[concat('logWks_', variables('logWksName'))]"
+      ],
+      "resourceGroup": "[variables('autoRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/automationAccount_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "automationAccountName": {
+            "value": "[variables('automationAccountName')]"
+          },
+          "logAnalyticsWorkspaceRgp": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspacelocation": {
+            "value": "[parameters('logWkslocation')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Automation Account",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]",
+      "condition": "[equals(parameters('deployPip'), 'true')]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/publicIpPrefix_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ipPrefixName": {
+            "value": "[variables('publicIpPrefixName')]"
+          },
+          "prefixLength": {
+            "value": "[variables('publicIpPrefixSize')]"
+          },
+          "zones": {
+            "value": "[variables('publicIpZone')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Public IP Address Prefix",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('publicIpAddresses_', variables('publicIpAddresses')[copyIndex('publicIpLoop')].name)]",
+      "condition": "[equals(parameters('deployPia'), 'true')]",
+      "dependsOn": [
+        "[concat('publicIpPrefix_', variables('publicIpPrefixName'))]"
+      ],
+      "copy": {
+        "name": "publicIpLoop",
+        "count": "[length(variables('publicIpAddresses'))]"
+      },
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/publicIpAddress_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ipPrefixName": {
+            "value": "[variables('publicIpPrefixName')]"
+          },
+          "publicIpAddressName": {
+            "value": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].name]"
+          },
+          "publicIpAddressDomainLabel": {
+            "value": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].domainLabel]"
+          },
+          "zones": {
+            "value": "[variables('publicIpZone')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "[variables('publicIpAddresses')[copyIndex('publicIpLoop')].componentTag]",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('hubFirewall_', variables('firewallName'))]",
+      "condition": "[equals(parameters('deployAfw'), 'true')]",
+      "resourceGroup": "[variables('netRgp')]",
+      "dependsOn": [
+        "publicIpLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/firewall_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "azureFirewallName": {
+            "value": "[variables('firewallName')]"
+          },
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "firewallSubnet": {
+            "value": "[variables('firewallSubnetName')]"
+          },
+          "publicIpName": {
+            "value": "[variables('firewallIpName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Azure Firewall",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
     }
-  }
+  ]
 }
