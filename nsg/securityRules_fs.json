@@ -11,7 +11,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "adfsSubnetPrefix"
+            "parameter": "subnetPrefixFS"
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -33,7 +33,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "jumpSrvSubnetPrefix"            
+            "parameter": "subnetPrefixJP"            
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -130,7 +130,7 @@
             ]
           },
           "destinationAddressPrefixes": {
-            "parameter": "adfsSubnetPrefix"
+            "parameter": "subnetPrefixFS"
           },
           "sourcePortRanges": [
             "*"
@@ -152,7 +152,7 @@
             ]          
           },
           "destinationAddressPrefixes": {
-            "parameter": "addsSubnetPrefix"
+            "parameter": "subnetPrefixDS"
           },
           "sourcePortRanges": [
             "*"
@@ -184,7 +184,7 @@
             ]          
           },
           "destinationAddressPrefixes": {
-            "parameter": "addsSubnetPrefix"
+            "parameter": "subnetPrefixDS"
           },
           "sourcePortRanges": [
             "*"

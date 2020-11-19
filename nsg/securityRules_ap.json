@@ -11,7 +11,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "appSubnetPrefix"
+            "parameter": "subnetPrefixAP"
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -33,7 +33,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "jumpSrvSubnetPrefix"            
+            "parameter": "subnetPrefixJP"            
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -108,7 +108,7 @@
             ]
           },
           "destinationAddressPrefixes": {
-            "parameter": "appSubnetPrefix"
+            "parameter": "subnetPrefixAP"
           },
           "sourcePortRanges": [
             "*"
@@ -130,7 +130,7 @@
             ]          
           },
           "destinationAddressPrefixes": {
-            "parameter": "addsSubnetPrefix"
+            "parameter": "subnetPrefixDS"
           },
           "sourcePortRanges": [
             "*"
@@ -162,7 +162,7 @@
             ]          
           },
           "destinationAddressPrefixes": {
-            "parameter": "addsSubnetPrefix"
+            "parameter": "subnetPrefixDS"
           },
           "sourcePortRanges": [
             "*"
@@ -190,7 +190,7 @@
             ]
           },
           "destinationAddressPrefixes": {
-            "parameter": "adfsSubnetPrefix"
+            "parameter": "subnetPrefixFS"
           },
           "sourcePortRanges": [
             "*"

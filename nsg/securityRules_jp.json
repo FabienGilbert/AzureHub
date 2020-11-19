@@ -11,7 +11,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "jumpSrvSubnetPrefix"
+            "parameter": "subnetPrefixJP"
           },
           "destinationAddressPrefixes": {
             "value": [
