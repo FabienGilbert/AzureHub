@@ -11,7 +11,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "addsSubnetPrefix"            
+            "parameter": "addsSubnetPrefix"
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -175,6 +175,28 @@
           ],
           "destinationPortRanges": [
             "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 240,
+          "name": "AllowOutBoundADFS",
+          "description": "Allow OutBound HTTPS traffic to ADFS servers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "adfsSubnetPrefix"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "443"
           ]
         },
         {
