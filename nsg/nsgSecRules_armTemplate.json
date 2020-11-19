@@ -38,46 +38,52 @@
                 "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
             }
         },
-        "firewallSubnetPrefix": {
+        "subnetPrefixAG": {
             "type": "string",
             "metadata": {
-                "description": "Azure Firewall VNET subnet prefix."
+                "description": "AppGateway VNET subnet prefix."
             }
         },
-        "addsSubnetPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "AD FS VNET subnet prefix."
-            }
-        },
-        "jumpSrvSubnetPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Jump server VNET subnet prefix."
-            }
-        },
-        "environmentSupernet": {
-            "type": "string",
-            "metadata": {
-                "description": "Supernet that includes all subnets in use in the environment."
-            }
-        },
-        "adfsSubnetPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Edge VNET subnet prefix."
-            }
-        },
-        "appSubnetPrefix": {
+        "subnetPrefixAP": {
             "type": "string",
             "metadata": {
                 "description": "App VNET subnet prefix."
             }
         },
-        "wapSubnetPrefix": {
+        "subnetPrefixDS": {
+            "type": "string",
+            "metadata": {
+                "description": "AD Domain Services VNET subnet prefix."
+            }
+        },
+        "subnetPrefixFS": {
+            "type": "string",
+            "metadata": {
+                "description": "AD Federation Services VNET subnet prefix."
+            }
+        },
+        "subnetPrefixFW": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Firewall VNET subnet prefix."
+            }
+        },
+        "subnetPrefixJP": {
+            "type": "string",
+            "metadata": {
+                "description": "Jump server VNET subnet prefix."
+            }
+        },
+        "subnetPrefixRP": {
             "type": "string",
             "metadata": {
                 "description": "Web Application Proxy VNET subnet prefix."
+            }
+        },
+        "subnetPrefixVG": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Gateway subnet prefix."
             }
         },
         "dnsServers": {
@@ -128,7 +134,7 @@
         "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
         "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
         "nsgRgp": "[concat(variables('leftPrefix'),'NSG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
-        "nsgName": "[concat(variables('leftPrefix'), 'SNT-', toUpper(parameters('nsgTier')) , '-', replace(parameters('addsSubnetPrefix'), '/', '_'), '-NSG')]",
+        "nsgName": "[concat(variables('leftPrefix'), 'SNT-', toUpper(parameters('nsgTier')) , '-', replace(parameters(concat('subnetPrefix', toUpper(parameters('nsgTier')))), '/', '_'), '-NSG')]",
         "nsgTags": {
             "Component": "Network Security Group",
             "Application": "[parameters('applicationTag')]",
