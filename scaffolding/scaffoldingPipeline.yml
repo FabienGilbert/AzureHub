@@ -103,15 +103,15 @@ steps:
                          -subscriptionId $(subscriptionId)
                          -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
                          -tenantId $(tenantId)
-                         -deployAfw $(deployAfw)
-                         -deployAkv $(deployAkv)
-                         -deployAua $(deployAua)
-                         -deployLws $(deployLws)
-                         -deployNsf $(deployNsf)
-                         -deployNsg $(deployNsg)
-                         -deployPia $(deployPia)
-                         -deployPip $(deployPip)
-                         -deployRgp $(deployRgp)
-                         -deploySta $(deploySta)
-                         -deployUdr $(deployUdr)
-                         -deployVnt $(deployVnt)'
+                         -deployAfw $${{ parameters.deployAfw }}
+                         -deployAkv $${{ parameters.deployAkv }}
+                         -deployAua $${{ parameters.deployAua }}
+                         -deployLws $${{ parameters.deployLws }}
+                         -deployNsf $${{ parameters.deployNsf }}
+                         -deployNsg $${{ parameters.deployNsg }}
+                         -deployPia $${{ parameters.deployPia }}
+                         -deployPip $${{ parameters.deployPip }}
+                         -deployRgp $${{ parameters.deployRgp }}
+                         -deploySta $${{ parameters.deploySta }}
+                         -deployUdr $${{ parameters.deployUdr }}
+                         -deployVnt $${{ parameters.deployVnt }}'
