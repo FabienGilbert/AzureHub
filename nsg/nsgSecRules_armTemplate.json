@@ -116,13 +116,19 @@
             "metadata": {
                 "description": "Security Rules Definition"
             }
+        },
+        "nsgTier": {
+            "type": "string",
+            "metadata": {
+                "description": "NSG tier to deploy"
+            }
         }
     },
     "variables": {
         "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
         "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
         "nsgRgp": "[concat(variables('leftPrefix'),'NSG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
-        "nsgName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('addsSubnetPrefix'), '/', '_'), '-NSG')]",
+        "nsgName": "[concat(variables('leftPrefix'), 'SNT-', toUpper(parameters('nsgTier')) , '-', replace(parameters('addsSubnetPrefix'), '/', '_'), '-NSG')]",
         "nsgTags": {
             "Component": "Network Security Group",
             "Application": "[parameters('applicationTag')]",
