@@ -1,0 +1,61 @@
+{ 
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmName": {
+        "type": "string"
+      },
+      "configStorageSubcriptionId": {
+        "type": "string"
+      },
+      "configStorageResourceGroup": {
+        "type": "string"
+      },
+      "configStorageAccount": {
+        "type": "string"
+      },
+      "configStorageContainer": {
+        "type": "string"
+      },
+      "customScriptFiles": {
+        "type": "array"
+      },
+      "customScriptCommand": {
+        "type": "string"
+      },
+      "customScriptTimeStamp":{
+        "type": "int",
+        "defaultValue": 0
+      }
+     },
+    "variables": {},
+    "resources": [    
+      {        
+        "name": "[concat(parameters('vmName'), '/',parameters('vmName'), '-CustomScript')]",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2020-06-01",
+        "properties": {
+          "publisher": "Microsoft.Compute",
+          "type": "CustomScriptExtension",
+          "typeHandlerVersion": "1.9",
+          "autoUpgradeMinorVersion": true,
+          "settings": {
+            "copy": [
+                {
+                "name": "fileUris",
+                "count": "[length(parameters('customScriptFiles'))]",
+                "input": "[concat(reference(resourceId(parameters('configStorageSubcriptionId'), parameters('configStorageResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('configStorageAccount')), '2018-07-01').primaryEndpoints.blob, parameters('ConfigStorageContainer'), '/', parameters('customScriptFiles')[copyIndex('fileUris')])]"                
+                }
+            ],
+            "timestamp": "[if(not(equals(parameters('customScriptTimeStamp'), 0)), parameters('customScriptTimeStamp'), json('null'))]"         
+          },
+          "protectedSettings": {
+            "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File ', parameters('customScriptCommand'))]",
+            "storageAccountKey": "[listKeys(resourceId(parameters('configStorageSubcriptionId'), parameters('configStorageResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('configStorageAccount')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
+            "storageAccountName": "[parameters('configStorageAccount')]"
+          }
+        }
+      }        
+    ]
+}    

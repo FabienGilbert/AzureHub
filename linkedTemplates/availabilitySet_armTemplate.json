@@ -1,0 +1,41 @@
+{ 
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "AvailabilitySetName": {
+          "type": "string"
+      },
+      "UpdateDomainCount": {
+          "type": "int",
+          "defaultValue": 5,
+          "minValue": 5,
+          "maxValue": 20
+      },
+      "FaultDomainCount": {
+          "type": "int",
+          "defaultValue": 2,
+          "minValue": 2,
+          "maxValue": 3
+      },
+      "tags": {
+          "type": "object"
+      }
+     },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[parameters('AvailabilitySetName')]",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+              "PlatformUpdateDomainCount": "[parameters('UpdateDomainCount')]",
+              "PlatformFaultDomainCount": "[parameters('FaultDomainCount')]"
+            },
+            "sku": {
+              "name": "Aligned"
+            },
+            "tags": "[parameters('tags')]"
+        }        
+    ]
+}
