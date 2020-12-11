@@ -144,12 +144,6 @@
                 "description": "VM Local Administrator Public Key. Defaults to Password."
             }
         },
-        "DiagnosticStorageAccount": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the storage account for boot diagnostic logs."
-            }
-        },
         "dnsServers": {
             "type": "array",
             "defaultValue": [],
@@ -273,7 +267,7 @@
             "name": "[concat(parameters('VmName'),'-NIC-001')]",
             "type": "Microsoft.Network/networkInterfaces",
             "location": "[parameters('location')]",
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2020-06-01",
             "tags": "[if(equals(parameters('tags'), json('{}')), json('null'), parameters('tags'))]",
             "dependsOn": [],
             "properties": {
@@ -296,7 +290,7 @@
             }
         },
         {
-            "apiVersion": "2019-12-01",
+            "apiVersion": "2020-06-01",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[parameters('VmName')]",
             "location": "[parameters('location')]",
@@ -343,8 +337,7 @@
                 },
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
-                        "enabled": "True",
-                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('DiagnosticStorageAccount')), '2015-06-15').primaryEndpoints.blob)]"
+                        "enabled": "True"
                     }
                 }
             },
