@@ -27,7 +27,14 @@ Param
         Position = 3)]
     [ValidateNotNullOrEmpty()]      
     [String]
-    $variableGroupName 
+    $variableGroupName,
+
+    #Variables
+    [Parameter(Mandatory = $true, 
+        Position = 4)]
+    [ValidateNotNullOrEmpty()]      
+    [Array]
+    $Variables
 )
 
 #Build authentication header
@@ -38,14 +45,14 @@ $UriOrga = "https://dev.azure.com/$($organizationName)/"
 #Get project list
 $uriAccount = $UriOrga + "_apis/projects?api-version=5.1"
 $projects = Invoke-RestMethod -Uri $uriAccount -Method get -Headers $AzureDevOpsAuthenicationHeader 
-if(!($projects)){
+if (!($projects)) {
     Write-Error -Message ("No project could be found at " + $UriOrga)
     exit
 }
 
 #Select desired project
 $project = $projects.value | Where-Object -Property name -EQ -Value $projectName
-if(!($project)){
+if (!($project)) {
     $projectString = ($projects.value | Select-Object -ExpandProperty Name) -join ", "
     Write-Error -Message ("Project " + [char]34 + $projectName + [char]34 + " could not be found in projects " + $projectString + " at " + $UriOrga + ".")
     exit
@@ -54,22 +61,27 @@ if(!($project)){
 #Get variable group
 $uriVariablesGroup = $UriOrga + "/" + $project.name + "/_apis/distributedtask/variablegroups?groupName=" + $variableGroupName + "*&queryOrder=IdDescending&api-version=5.0-preview.1"
 $variableGroup = Invoke-RestMethod -Uri $uriVariablesGroup -Method get -Headers $AzureDevOpsAuthenicationHeader
-if($variableGroup.value.variables){
-    $variableMembers = $variableGroup.value.variables | Get-Member -MemberType NoteProperty
-    $variableHash = @{}
-    foreach($variableMember in $variableMembers){
-        $variableValue = $variableGroup.value.variables.($variableMember.Name).value
-        #Convert JSON to array if variable is an array
-        if($variableValue.Substring(0,1) -eq "[" -and $variableValue.Substring($variableValue.Length - 1) -eq "]"){
-            $variableValue = @(
-                (ConvertFrom-Json -InputObject $variableValue)
-            )
-        }
-        $variableHash.Add($variableMember.Name,$variableValue)        
+if ($variableGroup.value.variables) {
+    # Convert variables to desired structure
+    $variableHash = @{
+        "id" = $variableGroup.value.id 
+        "name" = $variableGroup.value.name
+        "description" = $variableGroup.value.description
+        "type" = $variableGroup.value.type
+        "variables" = @{"parameter"=@{"value"="1"}}
     }
-    #Output variables hash
-    New-Object -TypeName PSObject -Property $variableHash
+    $variableMembers = $variables | Get-Member -MemberType NoteProperty
+    foreach($variableMember in $variableMembers){
+        $variableHash.variables.Add($variableMember.Name, @{"value" = ""<#$variables.($variableMember.Name)#>})        
+    }
+    #convert to JSON
+    $requestBody = $variableHash | ConvertTo-Json -Depth 10
+    Write-Output ("Updating variable group " + $variableGroup.value + " with " + @($variableMembers).Count + " variables...")
+    #variable group API url
+    $uriSetVariableGroup = $UriOrga + "/" + $project.name + "/_apis/distributedtask/variablegroups/" + $variableGroup.value.id + "?api-version=5.0-preview.1"
+    #invoke API
+    $setVariableGroup = Invoke-RestMethod -Uri $uriSetVariableGroup -Method Put -Headers $AzureDevOpsAuthenicationHeader -Body $requestBody -ContentType 'application/json'    
 }
-else{
+else {
     Write-Error -Message ("Variable group " + [char]34 + $variableGroupName + [char]34 + " could not be found under project " + $project.name + " at " + $UriOrga + ".")
 }
