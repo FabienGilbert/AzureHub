@@ -19,7 +19,7 @@ $automationAccountsWithId = $automationAccounts | Select-Object @{l = "Index"; e
 Write-Output "`r`n"
 foreach ($aua in $automationAccountsWithId) { Write-Output ([string]($aua.Index) + " - " + $aua.AutomationAccountName) }
 Write-Output "`r`n"
-$subPrompt = Read-Host -Prompt ("Enter subscription index. Default 0")
+$subPrompt = Read-Host -Prompt ("Enter automation account index. Default 0")
 if (!($subPrompt)) {$subPrompt = 0}
 $autoAccount = $automationAccounts | Where-Object -Property AutomationAccountName -EQ -Value ($automationAccountsWithId | Where-Object -Property Index -EQ -Value $subPrompt).AutomationAccountName
 if (!($autoAccount)) { Write-Error -Message "Could not get Automation Account"; exit }

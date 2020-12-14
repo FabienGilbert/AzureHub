@@ -1,0 +1,108 @@
+trigger: none
+
+parameters:
+  - name: subscription
+    displayName: 'Target subscrption'
+    type: string
+    values:
+      - Spoke
+      - Hub
+  - name: components
+    displayName: 'VM Variable Groups to deploy (ex. "- VM_HUBDC")'
+    type: object
+
+jobs:
+  #Loop through the component list and create a job for each that references the corresponding variable group
+  - ${{ each c in parameters.components }}:
+    - job: "${{ parameters.subscription }}_${{ c }}"
+
+      variables: 
+        - group: "${{ parameters.subscription }}Scaffolding"
+        - group: "vmStaticVariables"
+        - group: ${{ c }}
+
+      steps:
+        - checkout: self
+          fetchDepth: 1
+
+        #Create KeyVault entry for localAdminUsername if it does not exist
+        - task: AzurePowerShell@5
+          displayName: 'Generate Local Admin Credentials'
+          inputs:
+            azureSubscription: 'AISEDP-ROOT-MGP-OWNR'
+            ScriptPath: 'EnterpriseDataPlatform/code/services/vm/generateVmKeySecret.ps1'
+            ScriptArguments: '
+              -EnterprisePrefix $(EnterprisePrefix)
+              -RegionPrefix $(RegionPrefix)
+              -vmApplicationPrefix $(vmApplicationPrefix)
+              -encryptionVolumeType $(encryptionVolumeType)
+              -EnvironmentPrefix $(EnvironmentPrefix)
+              -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
+              -SubscriptionId $(subscriptionId)
+              -vmComponentPrefix $(vmComponentPrefix)'
+            azurePowerShellVersion: LatestVersion
+
+        #Find available IP address(es) and add to static IP list
+        - task: AzurePowerShell@5
+          displayName: 'Find Available Static IP Addresses'
+          inputs:
+            azureSubscription: 'AISEDP-ROOT-MGP-OWNR'
+            ScriptPath: 'EnterpriseDataPlatform/code/services/vm/findStaticIpAddress.ps1'
+            ScriptArguments: "
+              -EnterprisePrefix $(EnterprisePrefix)
+              -RegionPrefix $(RegionPrefix)
+              -EnvironmentPrefix $(EnvironmentPrefix)
+              -staticIpAddresses '$(staticIpAddresses)'
+              -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
+              -SubscriptionId $(subscriptionId)
+              -subnetTier $(subnetTier)
+              -vmCount $(vmCount)"
+            azurePowerShellVersion: LatestVersion
+
+        # Deploy Azure Resources using ARM template
+        - task: AzureResourceManagerTemplateDeployment@3
+          displayName: 'Deploy Azure Resource Manager Template'
+          enabled: true
+          continueOnError: true
+          inputs:
+            deploymentScope: 'Resource Group'
+            azureResourceManagerConnection: 'AISEDP-ROOT-MGP-OWNR'
+            subscriptionid: '$(subscriptionId)'
+            location: '$(location)'
+            action: 'Create Or Update Resource Group'
+            resourceGroupName: $(ResourceGroupName)
+            templateLocation: 'Linked artifact'
+            csmFile: 'EnterpriseDataPlatform/code/services/vm/vm_main_armTemplate.json'
+            csmParametersFile: 'EnterpriseDataPlatform/code/services/vm/vm_static_armParameters.json'
+            overrideParameters: '
+              -adOuPath $(adOuPath)
+              -ApplicationPrefix $(vmApplicationPrefix)
+              -applicationTag $(vmApplicationTag)
+              -availabilitySet $(availabilitySet)
+              -componentTag $(componentTag)
+              -dataDiskCache $(dataDiskCache)
+              -dataDiskSizes $(dataDiskSizes)
+              -dataDiskType $(dataDiskType)
+              -dnsServers $(dnsServers)
+              -domainjoin $(domainjoin)
+              -dscConfigurationName $(dscConfigurationName)
+              -encryptionVolumeType $(encryptionVolumeType)
+              -EnterprisePrefix $(EnterprisePrefix)
+              -EnvironmentPrefix $(EnvironmentPrefix)
+              -environmentTag $(environmentTag)
+              -hubSubId $(subscriptionId)
+              -ImageOffer $(ImageOffer)
+              -ImagePublisher $(ImagePublisher)
+              -ImageSKU $(ImageSKU)
+              -localAdminUsername $(localAdminUsername)
+              -OSDiskSize $(OSDiskSize)
+              -OSDiskType $(OSDiskType)
+              -RegionPrefix $(RegionPrefix)
+              -staticIpAddresses $(staticIpAddresses)
+              -SubscriptionOrdinalPrefix $(SubscriptionOrdinalPrefix)
+              -vmComponentPrefix $(vmComponentPrefix)
+              -vmIncrementPrefixes $(vmIncrementPrefixes)
+              -vmCount $(vmCount)
+              -vmSize $(vmSize)
+              -vnetSubnetName $(vnetSubnetName)'
+            deploymentMode: 'Incremental'
