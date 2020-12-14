@@ -29,8 +29,8 @@ jobs:
         - task: AzurePowerShell@5
           displayName: 'Generate Local Admin Credentials'
           inputs:
-            azureSubscription: 'AISEDP-ROOT-MGP-OWNR'
-            ScriptPath: 'EnterpriseDataPlatform/code/services/vm/generateVmKeySecret.ps1'
+            azureSubscription: 'FGT-ROOT-MGP-OWNR'
+            ScriptPath: 'vm/generateVmKeySecret.ps1'
             ScriptArguments: '
               -EnterprisePrefix $(EnterprisePrefix)
               -RegionPrefix $(RegionPrefix)
@@ -46,8 +46,8 @@ jobs:
         - task: AzurePowerShell@5
           displayName: 'Find Available Static IP Addresses'
           inputs:
-            azureSubscription: 'AISEDP-ROOT-MGP-OWNR'
-            ScriptPath: 'EnterpriseDataPlatform/code/services/vm/findStaticIpAddress.ps1'
+            azureSubscription: 'FGT-ROOT-MGP-OWNR'
+            ScriptPath: 'vm/findStaticIpAddress.ps1'
             ScriptArguments: "
               -EnterprisePrefix $(EnterprisePrefix)
               -RegionPrefix $(RegionPrefix)
@@ -66,14 +66,13 @@ jobs:
           continueOnError: true
           inputs:
             deploymentScope: 'Resource Group'
-            azureResourceManagerConnection: 'AISEDP-ROOT-MGP-OWNR'
+            azureResourceManagerConnection: 'FGT-ROOT-MGP-OWNR'
             subscriptionid: '$(subscriptionId)'
             location: '$(location)'
             action: 'Create Or Update Resource Group'
             resourceGroupName: $(ResourceGroupName)
             templateLocation: 'Linked artifact'
-            csmFile: 'EnterpriseDataPlatform/code/services/vm/vm_main_armTemplate.json'
-            csmParametersFile: 'EnterpriseDataPlatform/code/services/vm/vm_static_armParameters.json'
+            csmFile: 'vm/vm_main_armTemplate.json'
             overrideParameters: '
               -adOuPath $(adOuPath)
               -ApplicationPrefix $(vmApplicationPrefix)
