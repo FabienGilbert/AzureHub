@@ -103,5 +103,18 @@ jobs:
               -vmIncrementPrefixes $(vmIncrementPrefixes)
               -vmCount $(vmCount)
               -vmSize $(vmSize)
-              -vnetSubnetName $(vnetSubnetName)'
+              -vnetSubnetName $(vnetSubnetName)
+              -adDomainFqdn $(adDomainFqdn)
+              -adDomainJoinUsername $(adDomainJoinUsername)
+              -automationAccountName $(automationAccountName)
+              -automationAccountResourceGroup $(automationAccountResourceGroup)
+              -customScriptCommand $(customScriptCommand)
+              -customScriptFiles $(customScriptFiles)
+              -customScriptStorageAccount $(customScriptStorageAccount)
+              -customScriptStorageContainer $(customScriptStorageContainer)
+              -customScriptStorageResourceGroup $(customScriptStorageResourceGroup)
+              -hubKeyVaultName $(hubKeyVaultName)
+              -hubKeyVaultRgp $(hubKeyVaultRgp)
+              -logAnalyticsWorkspaceName $(logAnalyticsWorkspaceName)
+              -logAnalyticsWorkspaceResourceGroup $(logAnalyticsWorkspaceResourceGroup)'
             deploymentMode: 'Incremental'
