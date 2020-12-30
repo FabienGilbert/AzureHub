@@ -14,44 +14,40 @@ if ($subPrompt) {
 }
 # NIC selection
 $subNics = Get-AzNetworkInterface
-$automationAccounts = Get-AzAutomationAccount
-$automationAccountsWithId = $automationAccounts | Select-Object @{l = "Index"; e = { [array]::IndexOf($automationAccounts, $_) } }, AutomationAccountName
+$subNicsWithId = $subNics | Select-Object @{l = "Index"; e = { [array]::IndexOf($subNics, $_) } }, Name
 Write-Output "`r`n"
-foreach ($aua in $automationAccountsWithId) { Write-Output ([string]($aua.Index) + " - " + $aua.AutomationAccountName) }
+foreach ($nic in $subNicsWithId) { Write-Output ([string]($nic.Index) + " - " + $nic.Name) }
 Write-Output "`r`n"
-$subPrompt = Read-Host -Prompt ("Enter automation account index. Default 0")
+$subPrompt = Read-Host -Prompt ("Enter network interface index. Default 0")
 if (!($subPrompt)) {$subPrompt = 0}
-$autoAccount = $automationAccounts | Where-Object -Property AutomationAccountName -EQ -Value ($automationAccountsWithId | Where-Object -Property Index -EQ -Value $subPrompt).AutomationAccountName
-if (!($autoAccount)) { Write-Error -Message "Could not get Automation Account"; exit }
-
-$networkRg = ""
-$nicRg = ""
-$nicName = ""
-$nsgRg = ""
-$nsgName = ""
-$ipName = ""
-$pip = $null
-$nic = $null
-$nsg = $null
+$nic = $subNics | Where-Object -Property Name -EQ -Value ($subNicsWithId | Where-Object -Property Index -EQ -Value $subPrompt).Name
+if (!($nic)) { Write-Error -Message "Could not get Network Interface"; exit }
+# Public IP selection
+$publicIps = Get-AzPublicIpAddress
+$publicIpsWithId = $publicIps | Select-Object @{l = "Index"; e = { [array]::IndexOf($publicIps, $_) } }, Name
+Write-Output "`r`n"
+foreach ($publicIp in $publicIpsWithId) { Write-Output ([string]($publicIp.Index) + " - " + $publicIp.Name) }
+Write-Output "`r`n"
+$subPrompt = Read-Host -Prompt ("Enter public IP index. Default 0")
+if (!($subPrompt)) {$subPrompt = 0}
+$pip = $publicIps | Where-Object -Property Name -EQ -Value ($publicIpsWithId | Where-Object -Property Index -EQ -Value $subPrompt).Name
+if (!($pip)) { Write-Error -Message "Could not get Public IP Address"; exit }
 $secRule = $null
 $revertprompt = $null
 #get public IP
 $ipInfoJson = Invoke-WebRequest -Uri http://ipinfo.io/json
 $ipInfo = $ipInfoJson.Content | ConvertFrom-Json
-#get IP
-$pip = Get-AzPublicIpAddress -ResourceGroupName $networkRg -Name $ipName
-if(!($pip)){Write-Error -Message ("Could not get Public IP Address  " + [char]34 + $pip + [char]34 + ". Aborting.");exit}
-#get NIC
-$nic = Get-AzNetworkInterface -ResourceGroupName $nicRg -Name $nicName
-if(!($nic)){Write-Error -Message ("Could not get NIC " + [char]34 + $nicName + [char]34 + ". Aborting.");exit}
-if($nic.IpConfigurations[0].PublicIpAddress.Id -ne $pip.Id){
+#set public IP on NIC
+$ipconfig = $nic.IpConfigurations[0]
+if($ipconfig.PublicIpAddress.Id -ne $pip.Id){
     Write-Output ("Setting Public IP name " + [char]34 + $pip.Name + [char]34 + " FQDN " + [char]34 + $pip.DnsSettings.Fqdn + [char]34 + " on NIC " + [char]34 + $nic.Name + [char]34 + "...")
-    Set-AzNetworkInterfaceIpConfig -NetworkInterface $nic -PublicIpAddress $pip -Name $nic.IpConfigurations[0].Name
-    Set-AzNetworkInterface -NetworkInterface $nic
+    $setIpConfig = Set-AzNetworkInterfaceIpConfig -NetworkInterface $nic -PublicIpAddress $pip -Name $ipconfig.Name
+    $setNic = Set-AzNetworkInterface -NetworkInterface $nic
 }
 #get NSG
-$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $nsgRg -Name $nsgName
-if(!($nsg)){Write-Error -Message ("Could not get NSG " + [char]34 + $nsgName + [char]34 + ". Aborting.");exit}
+$nicSubnet = Get-AzVirtualNetworkSubnetConfig -ResourceId $ipconfig.Subnet.Id
+$nsg = Get-AzNetworkSecurityGroup | Where-Object {$_.Id -eq $nicSubnet.NetworkSecurityGroup.Id}
+if(!($nsg)){Write-Error -Message ("Could not get NSG Id " + [char]34 + $nicSubnet.NetworkSecurityGroup.Id + [char]34 + ". Aborting.");exit}
 #build security rules
 $secRule = New-AzNetworkSecurityRuleConfig -Access "Allow" `
                                            -Direction "inbound" `
@@ -60,7 +56,7 @@ $secRule = New-AzNetworkSecurityRuleConfig -Access "Allow" `
                                            -Description ("Allow temporary InBound RDP from " + $ipInfo.ip + ". Created on " + (Get-Date -UFormat %Y-%m-%d) + " at " + (Get-Date -UFormat %H:%M) + ".") `
                                            -Protocol "tcp" `
                                            -SourceAddressPrefix $ipInfo.ip `
-                                           -DestinationAddressPrefix $nic.IpConfigurations[0].PrivateIpAddress `
+                                           -DestinationAddressPrefix $ipconfig.PrivateIpAddress `
                                            -SourcePortRange "*" `
                                            -DestinationPortRange "3389"
 if(!($nsg.SecurityRules | Where-Object {$_.DestinationPortRange -eq $secrule.destinationPortRange -and $_.Priority -eq $secrule.Priority -and $_.SourceAddressPrefix -eq $ipInfo.ip})){
@@ -77,13 +73,13 @@ do{
 if($revertprompt -eq "N"){exit}
 #Revert configuration
 #get NSG
-$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $nsgRg -Name $nsgName
-if(!($nsg)){Write-Error -Message ("Could not get NSG " + [char]34 + $nsgName + [char]34 + ". Aborting.");exit}
+$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $nsg.ResourceGroupName -Name $nsg.Name
+if(!($nsg)){Write-Error -Message ("Could not get NSG " + [char]34 + $nsg.Name + [char]34 + ". Aborting.");exit}
 Write-Output ("Removing Security Rule from NSG " + [char]34 + $nsgName + [char]34 + "...")
 $nsg.SecurityRules = $nsg.SecurityRules | Where-Object {!($_.DestinationPortRange -eq $secrule.destinationPortRange -and $_.Priority -eq $secrule.Priority -and $_.SourceAddressPrefix -eq $ipInfo.ip)}
 $nsgSave = $nsg | Set-AzNetworkSecurityGroup
 #get NIC
-$nic = Get-AzNetworkInterface -ResourceGroupName $nicRg -Name $nicName
+$nic = Get-AzNetworkInterface -ResourceGroupName $nic.ResourceGroupName-Name $nic.Name
 if(!($nic)){Write-Error -Message ("Could not get NIC " + [char]34 + $nicName + [char]34 + ". Aborting.");exit}
 Write-Output ("Removing Public IP name " + [char]34 + $pip.Name + [char]34 + " from NIC " + [char]34 + $nic.Name + [char]34 + "...")
 $nic.IpConfigurations[0].PublicIpAddress = $null
