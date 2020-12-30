@@ -75,7 +75,7 @@ if($revertprompt -eq "N"){exit}
 #get NSG
 $nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $nsg.ResourceGroupName -Name $nsg.Name
 if(!($nsg)){Write-Error -Message ("Could not get NSG " + [char]34 + $nsg.Name + [char]34 + ". Aborting.");exit}
-Write-Output ("Removing Security Rule from NSG " + [char]34 + $nsgName + [char]34 + "...")
+Write-Output ("Removing Security Rule from NSG " + [char]34 + $nsg.Name + [char]34 + "...")
 $nsg.SecurityRules = $nsg.SecurityRules | Where-Object {!($_.DestinationPortRange -eq $secrule.destinationPortRange -and $_.Priority -eq $secrule.Priority -and $_.SourceAddressPrefix -eq $ipInfo.ip)}
 $nsgSave = $nsg | Set-AzNetworkSecurityGroup
 #get NIC
