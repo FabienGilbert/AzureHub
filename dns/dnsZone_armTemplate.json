@@ -1,0 +1,80 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "zoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS zone to be created.  Must have at least 2 segements, e.g. hostname.org"
+      }
+    },
+    "Arecords": {
+      "type": "array",
+      "metadata": {
+        "description": "A DNS records to be created."
+      },
+      "defaultValue": []
+    },
+    "applicationTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Application tag"
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment Resource Tag"
+      }
+    }
+  },
+  "variables": {
+    "Tags": {
+      "Component": "DNS Zone",
+      "Application": "[parameters('applicationTag')]",
+      "Environment": "[parameters('environmentTag')]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/dnszones",
+      "name": "[parameters('zoneName')]",
+      "tags": "[variables('Tags')]",
+      "apiVersion": "2016-04-01",
+      "location": "global",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Network/dnszones/a",
+      "name": "[concat(parameters('zoneName'), '/', parameters('Arecords')[copyIndex('recordLoop')].name)]",
+      "condition": "[not(equals(parameters('Arecords'), json('[]')))]",
+      "apiVersion": "2016-04-01",
+      "location": "global",
+      "copy": {
+        "name": "recordLoop",
+        "count": "[length(parameters('Arecords'))]"
+      },
+      "dependsOn": [
+        "[parameters('zoneName')]"
+      ],
+      "properties": {
+        "TTL": 3600,
+        "copy": [
+          {
+            "name": "ARecords",
+            "count": "[length(parameters('Arecords')[copyIndex('recordLoop')].ipAddresses)]",
+            "input": {
+              "ipv4Address": "[parameters('Arecords')[copyIndex('recordLoop')].ipAddresses[copyIndex('ARecords')].ipv4Address]"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "nameServers": {
+      "type": "array",
+      "value": "[reference(parameters('zoneName')).nameServers]"
+    }
+  }
+}
