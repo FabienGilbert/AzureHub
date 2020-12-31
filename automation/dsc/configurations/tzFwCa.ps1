@@ -1,4 +1,4 @@
-Configuration tzFwAddsCa
+Configuration tzFwCa
 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DSCResource -ModuleName 'ComputerManagementDsc'
@@ -27,22 +27,7 @@ Configuration tzFwAddsCa
             Name = 'Public'
             Enabled = 'False'
         }
-        #Install Windows Roles and Features
-        WindowsFeature ActiveDirectory {
-            Ensure = "Present"
-            Name = "AD-Domain-Services" 
-        }
-        WindowsFeature ADManagementTools
-        {
-            Ensure = "Present"
-            Name = "RSAT-AD-Tools"
-            IncludeAllSubFeature = $true
-        }
-        WindowsFeature DNSManagementTools
-        {
-            Ensure = "Present"
-            Name = "RSAT-DNS-Server"
-        }        
+        #Install Windows Roles and Features        
         WindowsFeature CA {
             Ensure = "Present"
             Name = "ADCS-Cert-Authority" 
