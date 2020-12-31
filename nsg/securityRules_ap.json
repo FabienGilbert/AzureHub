@@ -49,6 +49,54 @@
         },
         {
           "direction": "inbound",
+          "priority": 240,
+          "name": "AllowInBoundCaTcp",
+          "description": "Allow InBound TCP certification authority traffic",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "parameter": "environmentSupernet"
+          },
+          "destinationAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "80",
+            "135",
+            "137-139",
+            "443",
+            "445"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 250,
+          "name": "AllowInBoundCaUdp",
+          "description": "Allow InBound UDP certification authority traffic",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "parameter": "environmentSupernet"
+          },
+          "destinationAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "137-139"
+          ]
+        },
+        {
+          "direction": "inbound",
           "priority": 1980,
           "name": "DenyInBoundVnetUDP",
           "description": "Deny Inbound UDP Traffic from all Azure and on-premises subnets.",
