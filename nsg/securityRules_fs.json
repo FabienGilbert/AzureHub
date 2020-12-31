@@ -201,6 +201,54 @@
         },
         {
           "direction": "outbound",
+          "priority": 240,
+          "name": "AllowOutBoundCaTcp",
+          "description": "Allow OutBound TCP certification authority traffic",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixAP"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "80",
+            "135",
+            "137-139",
+            "443",
+            "445"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 250,
+          "name": "AllowOutBoundCaUdp",
+          "description": "Allow OutBound UDP certification authority traffic",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixAP"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "137-139"
+          ]
+        },
+        {
+          "direction": "outbound",
           "priority": 1980,
           "name": "DenyOutBoundVnetTCP",
           "description": "Deny Outbound TCP Traffic to all Azure and on-premises subnets.",
