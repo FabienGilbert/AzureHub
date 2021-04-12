@@ -48,13 +48,7 @@
       "type": "string",
       "metadata": {
         "description": "Specify the environment prefix that will be added to all Resource Group and Resource names.."
-      },
-      "allowedValues": [
-        "C",
-        "D",
-        "T",
-        "L"
-      ]
+      }
     },
     "SubscriptionOrdinalPrefix": {
       "type": "string",
@@ -98,10 +92,10 @@
         "description": "Azure Firewall VNET subnet prefix."
       }
     },
-    "subnetPrefixJP": {
+    "subnetPrefixUT": {
       "type": "string",
       "metadata": {
-        "description": "Jump server VNET subnet prefix."
+        "description": "Util servers VNET subnet prefix."
       }
     },
     "subnetPrefixRP": {
@@ -122,16 +116,10 @@
         "description": "DNS Servers that will be configured in the VNET."
       }
     },
-    "keyVaultFullAccessGroupId": {
+    "keyVaultFullAccessObjectId": {
       "type": "string",
       "metadata": {
-        "description": "Azure AD Group Id for full access Key Vault access policy"
-      }
-    },
-    "keyVaultReadOnlyAccessGroupId": {
-      "type": "string",
-      "metadata": {
-        "description": "Azure AD Group Id for read-only Key Vault access policy"
+        "description": "Azure AD Object Id for full access Key Vault access policy"
       }
     },
     "allowedOnPremsPublicIps": {
@@ -174,13 +162,7 @@
       "type": "string",
       "metadata": {
         "description": "Environment Resource Tag"
-      },
-      "allowedValues": [
-        "Core",
-        "Dev",
-        "Test",
-        "Lab"
-      ]
+      }
     },
     "deployRgp": {
       "type": "string",
@@ -379,7 +361,7 @@
     "firewallSubnetName": "AzureFirewallSubnet",
     "firewallIpName": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
     "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('subnetPrefixDS'), '/', '_'))]",
-    "jumpSubnetName": "[concat(variables('leftPrefix'), 'SNT-JP-', replace(parameters('subnetPrefixJP'), '/', '_'))]",
+    "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
     "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('subnetPrefixFS'), '/', '_'))]",
     "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
     "wapSubnetName": "[concat(variables('leftPrefix'), 'SNT-RP-', replace(parameters('subnetPrefixRP'), '/', '_'))]",
@@ -421,8 +403,8 @@
         "serviceEndpoints": true
       },
       {
-        "name": "[variables('jumpSubnetName')]",
-        "ipPrefix": "[parameters('subnetPrefixJP')]",
+        "name": "[variables('utilSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixUT')]",
         "nsgUdr": true,
         "serviceEndpoints": true
       },
@@ -476,7 +458,7 @@
         "VnetSubscriptionId": "[parameters('subscriptionId')]",
         "VnetResourceGroup": "[variables('netRgp')]",
         "VnetName": "[variables('vnetName')]",
-        "VnetSubnet": "[variables('jumpSubnetName')]",
+        "VnetSubnet": "[variables('utilSubnetName')]",
         "action": "allow"
       },
       {
@@ -498,7 +480,7 @@
       {
         "comments": "Full Access Group",
         "tenantId": "[parameters('tenantId')]",
-        "objectId": "[parameters('keyVaultFullAccessGroupId')]",
+        "objectId": "[parameters('keyVaultFullAccessObjectId')]",
         "permissions": {
           "keys": [
             "all"
@@ -508,27 +490,6 @@
           ],
           "certificates": [
             "all"
-          ]
-        }
-      },
-      {
-        "comments": "Read-Only Access Group",
-        "tenantId": "[parameters('tenantId')]",
-        "objectId": "[parameters('keyVaultReadOnlyAccessGroupId')]",
-        "permissions": {
-          "keys": [
-            "WrapKey",
-            "UnwrapKey",
-            "Get",
-            "List"
-          ],
-          "secrets": [
-            "Get",
-            "List"
-          ],
-          "certificates": [
-            "Get",
-            "List"
           ]
         }
       },
