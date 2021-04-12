@@ -1,6 +1,29 @@
-#Create Azure AD App registration
-#Fabien Gilbert, AIS, 02-2020
-#Function to generate password
+# Create Azure AD App registration and store app key inside a Key Vault
+# Fabien Gilbert, Microsoft, 04-2021
+#
+[CmdletBinding()]
+param (
+    #ParameterFilePath
+    [Parameter(Position = 0,
+        HelpMessage = "Path to the JSON parameter file",
+        Mandatory = $true)]
+    [ValidateScript({Test-Path $_})]
+    [String]
+    $ParameterFilePath,
+
+    #SaveToKeyVault
+    [Parameter(Position = 1,
+        HelpMessage = "Save App Key to specified Key Vault")]
+    [Boolean]
+    $SaveToKeyVault = $true,
+
+    #DisplayKeyInClear
+    [Parameter(Position = 2,
+        HelpMessage = "Display App Key in clear")]
+    [Boolean]
+    $DisplayKeyInClear = $false
+)
+# Function to generate password
 function Get-RandomPassword {
     param (
         $pLength
@@ -48,26 +71,34 @@ function Get-RandomPassword {
     $RandomPassword
 }
 $currentFolder = Split-Path $script:MyInvocation.MyCommand.Path
-#Select App Registration file
-$folderList=$null;$file=$null
-$folderList = Get-ChildItem -Path $currentFolder -Recurse -Filter "*.json"
-Write-Output ("Select " + $resourceType + " JSON App Registration parameter file in the gridview window (may be in the background)")
-$file = $folderList | Sort-Object -Property Name | Select-Object -Property Name, LastWriteTime, FullName | Out-GridView -PassThru
-$appSettings = Get-Content -Path $file.FullName | ConvertFrom-Json
-if(!($appSettings)){Write-Output ("Could not import JSON file " + [char]34 + $file.Name + [char]34 + ". Aborting.");exit}
+# Import App Registration JSON parameter file
+Write-Output ("Importing App Registration JSON parameter file path " + [char]34 + $ParameterFilePath + [char]34 + "...")
+$appSettings = Get-Content -Path $ParameterFilePath | ConvertFrom-Json
+if(!($appSettings)){Write-Error -Message ("Could not import JSON file " + [char]34 + $ParameterFilePath + [char]34 + ".");exit}
+# Check Az connection
+$azTenant = Get-AzTenant
+if(!($azTenant)){Write-Error -Message "Could not get Azure AD Tenant. Check Az module and connection to Azure.";exit}
 #Get App Registration
 $aadApp = Get-AzADApplication -DisplayName $appSettings.displayName -ErrorAction:SilentlyContinue
-if(!($aadApp)){
+if($aadApp){
+    Write-Output ("Found existing " + [char]34 + $appSettings.displayName + [char]34 + " App Registration " + ".")
+}
+else{
     Write-Output ("Creating Azure AD App Registration " + [char]34 + $appSettings.displayName + [char]34 + "...")
     $aadApp = New-AzADApplication -DisplayName $appSettings.displayName -IdentifierUris $appSettings.identifierUri
-    $appSettings.ApplicationId = $aadApp.ApplicationId.Guid
-    $appSettings | ConvertTo-Json -Depth 10 | Out-File -FilePath $file.FullName
+    if($aadApp){
+        Write-Output ("`tApp Registration created with Key " + $aadApp.ApplicationId.Guid)        
+        $appSettings.ApplicationId = $aadApp.ApplicationId.Guid
+        $appSettings | ConvertTo-Json -Depth 10 | Out-File -FilePath $ParameterFilePath
+    }
+    else{Write-Error -Message ("Could not create Azure AD App Registration " + [char]34 + $appSettings.displayName + [char]34 + ".");exit}
 }
 #Create Service Principal
 $aadAppSvcPrincipal = Get-AzADServicePrincipal -ApplicationId $aadApp.ApplicationId
-if(!($aadAppSvcPrincipal)){
+if($aadAppSvcPrincipal){Write-Output ("Service Principal id " + $aadAppSvcPrincipal + " already exists.")}
+else{
     Write-Output ("Creating service principal...")
-    $aadAppSvcPrincipal = New-AzADServicePrincipal -ApplicationId $aadApp.ApplicationId
+    $aadAppSvcPrincipal = New-AzADServicePrincipal -ApplicationId $aadApp.ApplicationId -SkipAssignment
 }
 #Certificates
 if($appSettings.certificate){
@@ -77,7 +108,7 @@ if($appSettings.certificate){
         $selfSignedCert = $null
         $selfSignedCert = New-SelfSignedCertificate -DnsName $appSettings.certificate.dnsName -FriendlyName $appSettings.certificate.friendlyName -CertStoreLocation $appSettings.certificate.store -KeyExportPolicy Exportable -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" -NotAfter ([datetime]::now).AddYears($appSettings.certificate.lengthYears)   
         $appSettings.certificate.thumbprint = $selfSignedCert.Thumbprint
-        $appSettings | ConvertTo-Json -Depth 10 | Out-File -FilePath $file.FullName
+        $appSettings | ConvertTo-Json -Depth 10 | Out-File -FilePath $ParameterFilePath
     }
     #Open SSL Certificate
     Write-Output ("Opening SSL Certificate " + [char]34 + $appSettings.certificate.friendlyName + [char]34 + " thumbprint " + $appSettings.certificate.thumbprint + "...")
@@ -98,10 +129,16 @@ if($appSettings.certificate){
 }
 #Key
 if($appSettings.key){
-    Write-Output ("Generating Application Key...")
+    $validUntil = ([datetime]::Now).AddYears(1)
+    Write-Output ("Generating Application Key valid until: " + $validUntil)
     $appKey = Get-RandomPassword -pLength 24
+    if($DisplayKeyInClear){Write-Output ("`r`n" + $appKey + "`r`n")}
     $appKeySecure = ConvertTo-SecureString -String $appKey -AsPlainText -Force
-    $setKey = New-AzADAppCredential -ApplicationId $aadApp.ApplicationId -Password $appKeySecure -EndDate ([datetime]::Now).AddYears(1)
-    Write-Output ("Saving Application Key in Key Vault " + [char]34 + $appSettings.key.keyVaultName + [char]34 + "...")
-    Set-AzKeyVaultSecret -VaultName $appSettings.key.keyVaultName -Name $appSettings.key.secretName -SecretValue $appKeySecure
+    $setKey = New-AzADAppCredential -ApplicationId $aadApp.ApplicationId -Password $appKeySecure -EndDate $validUntil
+    if($setKey){Write-Output "`tkey creation succeeded"}
+    else{Write-Error -Message ("App Registration key creation failed")}
+    if($SaveToKeyVault){
+        Write-Output ("Saving Application Key in Key Vault " + [char]34 + $appSettings.key.keyVaultName + [char]34 + "...")
+        Set-AzKeyVaultSecret -VaultName $appSettings.key.keyVaultName -Name $appSettings.key.secretName -SecretValue $appKeySecure
+    }
 }
