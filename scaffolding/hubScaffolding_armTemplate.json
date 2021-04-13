@@ -440,6 +440,7 @@
       },
       {
         "name": "[variables('utilSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixUT')]",
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
@@ -447,6 +448,7 @@
       },
       {
         "name": "[variables('dbSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixDB')]",
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
@@ -454,6 +456,7 @@
       },
       {
         "name": "[variables('appSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixAP')]",
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
