@@ -125,9 +125,10 @@
               "name": "[parameters('subnets')[copyIndex('subnets')].SubnetName]",
               "properties": {
                 "addressPrefix": "[parameters('subnets')[copyIndex('subnets')].addressPrefix]",
-                "networkSecurityGroup": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].NsgName, '')), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].NsgResourceGroup,parameters('subnets')[copyIndex('subnets')].NsgName, 'Microsoft.Network/networkSecurityGroups'), json('null'))]",
-                "routeTable": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].UDRName, '')), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].UdrResourceGroup,parameters('subnets')[copyIndex('subnets')].UdrName, 'Microsoft.Network/routeTables'), json('null'))]",
-                "serviceEndpoints": "[if(not(equals(parameters('subnets')[copyIndex('subnets')].ServiceEndpoints, '')), parameters('subnets')[copyIndex('subnets')].ServiceEndpoints, json('null'))]"
+                "networkSecurityGroup": "[if(equals(parameters('subnets')[copyIndex('subnets')].NsgName, ''), json('null'), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].NsgResourceGroup,parameters('subnets')[copyIndex('subnets')].NsgName, 'Microsoft.Network/networkSecurityGroups'))]",
+                "routeTable": "[if(equals(parameters('subnets')[copyIndex('subnets')].UDRName, ''), json('null'), vnetfunc.GetResourceId(parameters('subnets')[copyIndex('subnets')].UdrResourceGroup,parameters('subnets')[copyIndex('subnets')].UdrName, 'Microsoft.Network/routeTables'))]",
+                "serviceEndpoints": "[if(equals(parameters('subnets')[copyIndex('subnets')].ServiceEndpoints, ''), json('null'), parameters('subnets')[copyIndex('subnets')].ServiceEndpoints)]",
+                "privateEndpointNetworkPolicies": "[if(equals(parameters('subnets')[copyIndex('subnets')].privateEndpointNetworkPolicies, ''), 'Enabled', parameters('subnets')[copyIndex('subnets')].privateEndpointNetworkPolicies)]"
               }
             }
           }

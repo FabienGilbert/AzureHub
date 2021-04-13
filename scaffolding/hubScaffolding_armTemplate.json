@@ -62,16 +62,22 @@
         "description": "Address Prefixes that will be configured into the VNET."
       }
     },
+    "subnetPrefixVG": {
+      "type": "string",
+      "metadata": {
+        "description": "VNET Gateway subnet prefix."
+      }
+    },
     "subnetPrefixAG": {
       "type": "string",
       "metadata": {
         "description": "AppGateway VNET subnet prefix."
       }
     },
-    "subnetPrefixAP": {
+    "subnetPrefixFW": {
       "type": "string",
       "metadata": {
-        "description": "App VNET subnet prefix."
+        "description": "Azure Firewall VNET subnet prefix."
       }
     },
     "subnetPrefixDS": {
@@ -86,28 +92,34 @@
         "description": "AD Federation Services VNET subnet prefix."
       }
     },
-    "subnetPrefixFW": {
-      "type": "string",
-      "metadata": {
-        "description": "Azure Firewall VNET subnet prefix."
-      }
-    },
-    "subnetPrefixUT": {
-      "type": "string",
-      "metadata": {
-        "description": "Util servers VNET subnet prefix."
-      }
-    },
     "subnetPrefixRP": {
       "type": "string",
       "metadata": {
         "description": "Web Application Proxy VNET subnet prefix."
       }
     },
-    "subnetPrefixVG": {
+    "subnetPrefixAT": {
       "type": "string",
       "metadata": {
-        "description": "VNET Gateway subnet prefix."
+        "description": "Automation VNET subnet prefix."
+      }
+    },
+    "subnetPrefixUT": {
+      "type": "string",
+      "metadata": {
+        "description": "Utility servers VNET subnet prefix."
+      }
+    },
+    "subnetPrefixDB": {
+      "type": "string",
+      "metadata": {
+        "description": "DB VNET subnet prefix."
+      }
+    },
+    "subnetPrefixAP": {
+      "type": "string",
+      "metadata": {
+        "description": "App VNET subnet prefix."
       }
     },
     "dnsServers": {
@@ -356,63 +368,96 @@
     ],
     "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
     "automationAccountName": "[concat(variables('leftPrefix'),'AUTO-',parameters('SubscriptionOrdinalPrefix'))]",
+    "automationDnsZoneName": "privatelink.azure-automation.net",
+    "automationPrivateEndpointName": "[concat(variables('leftPrefix'), 'PVE-', parameters('SubscriptionOrdinalPrefix'), '-AUA')]",
     "nsgStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'nsgstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
     "firewallName": "[concat(variables('leftPrefix'),'FW-',parameters('SubscriptionOrdinalPrefix'))]",
     "firewallSubnetName": "AzureFirewallSubnet",
     "firewallIpName": "[concat(variables('leftPrefix'),'IP-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
     "addsSubnetName": "[concat(variables('leftPrefix'), 'SNT-DS-', replace(parameters('subnetPrefixDS'), '/', '_'))]",
-    "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
     "adfsSubnetName": "[concat(variables('leftPrefix'), 'SNT-FS-', replace(parameters('subnetPrefixFS'), '/', '_'))]",
-    "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
     "wapSubnetName": "[concat(variables('leftPrefix'), 'SNT-RP-', replace(parameters('subnetPrefixRP'), '/', '_'))]",
+    "autoSubnetName": "[concat(variables('leftPrefix'), 'SNT-AT-', replace(parameters('subnetPrefixAT'), '/', '_'))]",
+    "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
+    "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
+    "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
     "subnets": [
       {
         "name": "GatewaySubnet",
         "ipPrefix": "[parameters('subnetPrefixVG')]",
-        "nsgUdr": false,
-        "serviceEndpoints": false
+        "nsg": false,
+        "udr": true,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
       },
       {
         "name": "AppGatewaySubnet",
         "ipPrefix": "[parameters('subnetPrefixAG')]",
-        "nsgUdr": false,
-        "serviceEndpoints": false
+        "nsg": false,
+        "udr": false,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
       },
       {
         "name": "[variables('firewallSubnetName')]",
         "ipPrefix": "[parameters('subnetPrefixFW')]",
-        "nsgUdr": false,
-        "serviceEndpoints": false
+        "nsg": false,
+        "udr": false,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
       },
       {
         "name": "[variables('addsSubnetName')]",
         "ipPrefix": "[parameters('subnetPrefixDS')]",
-        "nsgUdr": true,
-        "serviceEndpoints": true
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
       },
       {
         "name": "[variables('adfsSubnetName')]",
         "ipPrefix": "[parameters('subnetPrefixFS')]",
-        "nsgUdr": true,
-        "serviceEndpoints": true
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
       },
       {
         "name": "[variables('wapSubnetName')]",
         "ipPrefix": "[parameters('subnetPrefixRP')]",
-        "nsgUdr": true,
-        "serviceEndpoints": true
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('autoSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixAT')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": true
       },
       {
         "name": "[variables('utilSubnetName')]",
-        "ipPrefix": "[parameters('subnetPrefixUT')]",
-        "nsgUdr": true,
-        "serviceEndpoints": true
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('dbSubnetName')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
       },
       {
         "name": "[variables('appSubnetName')]",
-        "ipPrefix": "[parameters('subnetPrefixAP')]",
-        "nsgUdr": true,
-        "serviceEndpoints": true
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
       }
     ],
     "copy": [
@@ -422,11 +467,12 @@
         "input": {
           "SubnetName": "[variables('subnets')[copyIndex('vnetSubnets')].name]",
           "addressPrefix": "[variables('subnets')[copyIndex('vnetSubnets')].ipPrefix]",
-          "NsgResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsgUdr, json('true')), variables('nsgRgp'),'')]",
-          "NsgName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsgUdr, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-NSG'),'')]",
-          "UdrResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsgUdr, json('true')), variables('netRgp'),'')]",
-          "UdrName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsgUdr, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-UDR'),'')]",
-          "serviceEndpoints": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].serviceEndpoints, json('true')), variables('serviceEndpoints'),'')]"
+          "NsgResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsg, json('true')), variables('nsgRgp'),'')]",
+          "NsgName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsg, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-NSG'),'')]",
+          "UdrResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].udr, json('true')), variables('netRgp'),'')]",
+          "UdrName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].udr, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-UDR'),'')]",
+          "serviceEndpoints": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].serviceEndpoints, json('true')), variables('serviceEndpoints'),'')]",
+          "privateEndpointNetworkPolicies": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].privateEndpoints, json('true')), 'Disabled','Enabled')]"
         }
       }
     ],
@@ -636,7 +682,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubUdr_', variables('subnets')[copyIndex('udrLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].nsgUdr, json('true')), equals(parameters('deployUdr'), 'True'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].udr, json('true')), equals(parameters('deployUdr'), 'True'))]",
       "dependsOn": [
         "rgpLoop"
       ],
@@ -669,7 +715,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubNsg_', variables('subnets')[copyIndex('nsgLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsgUdr, json('true')), equals(parameters('deployNsg'), 'True'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsg, json('true')), equals(parameters('deployNsg'), 'True'))]",
       "dependsOn": [
         "[concat('logWks_', variables('logWksName'))]"
       ],
@@ -853,7 +899,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "[concat('hubNsgFlowLog_', variables('subnets')[copyIndex('nsgFlowLogLoop')].name)]",
-      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsgUdr, json('true')), equals(parameters('deployNsf'), 'True'))]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsg, json('true')), equals(parameters('deployNsf'), 'True'))]",
       "dependsOn": [
         "storeLoop"
       ],
@@ -915,6 +961,93 @@
           "tags": {
             "value": {
               "Component": "Automation Account",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "automationPrivateDnsZone",
+      "condition": "[equals(parameters('deployAua'), 'True')]",
+      "dependsOn": [
+        "[concat('logWks_', variables('logWksName'))]"
+      ],
+      "resourceGroup": "[variables('dnsRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/privateDnsZone_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zoneName": {
+            "value": "[variables('automationDnsZoneName')]"
+          },
+          "allowedVnetRgp": {
+            "value": "[variables('netRgp')]"
+          },
+          "allowedVnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "applicationTag": {
+            "value": "[parameters('applicationTag')]"
+          },
+          "environmentTag": {
+            "value": "[parameters('environmentTag')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('automationPrivateEndpoint_', variables('automationAccountName'))]",
+      "condition": "[equals(parameters('deployAua'), 'True')]",
+      "dependsOn": [
+        "[concat('automationAccount_', variables('automationAccountName'))]",
+        "automationPrivateDnsZone"
+      ],
+      "resourceGroup": "[variables('autoRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/privateEndpoint_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "privateEndpointName": {
+            "value": "[variables('automationPrivateEndpointName')]"
+          },
+          "privateLinkResource": {
+            "value": "[concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', variables('autoRgp'), '/providers/Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+          },
+          "targetSubResource": {
+            "value": [
+              "DSCAndHybridWorker"
+            ]
+          },
+          "vnetResourceGroup": {
+            "value": "[variables('netRgp')]"
+          },
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "subnetName": {
+            "value": "[variables('autoSubnetName')]"
+          },
+          "privateDnsZoneName": {
+            "value": "[variables('automationDnsZoneName')]"
+          },
+          "privateDnsZoneResourceGroup": {
+            "value": "[variables('dnsRgp')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "[concat('storage private endpoint for automation account')]",
               "Application": "[parameters('applicationTag')]",
               "Environment": "[parameters('environmentTag')]"
             }

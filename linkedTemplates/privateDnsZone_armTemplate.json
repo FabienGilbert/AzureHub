@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "zoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS zone to be created.  Must have at least 2 segements, e.g. hostname.org"
+      }
+    },
+    "allowedVnetSubId": {
+      "type": "string",
+      "metadata": {
+        "description": "Subscription id of the Virtual Network to allow access to the private DNS zone"
+      },
+      "defaultValue": "[subscription().subscriptionId]"
+    },
+    "allowedVnetRgp": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource group name of the Virtual Network to allow access to the private DNS zone"
+      },
+      "defaultValue": "[resourceGroup().name]"
+    },
+    "allowedVnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Virtual Network to allow access to the private DNS zone"
+      }
+    },
+    "dnsRegistrationEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Allow VNET to register hosts inside DNS zone"
+      },
+      "defaultValue": false
+    },
+    "applicationTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Application tag"
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment Resource Tag"
+      }
+    }
+  },
+  "variables": {    
+    "Tags": {
+      "Component": "Private DNS Zone",
+      "Application": "[parameters('applicationTag')]",
+      "Environment": "[parameters('environmentTag')]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/privatednszones",
+      "name": "[parameters('zoneName')]",
+      "apiVersion": "2018-09-01",
+      "location": "global",
+      "tags": "[variables('Tags')]",
+      "properties": {
+        "zoneType": "Private"
+      }
+    },
+    {
+      "name": "[concat(parameters('zoneName'), '/', parameters('allowedVnetName'))]",
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "location": "global",
+      "dependsOn": [
+        "[parameters('zoneName')]"
+      ],
+      "apiVersion": "2018-09-01",
+      "properties": {
+        "virtualNetwork": {
+          "id": "[resourceId(parameters('allowedVnetSubId'), parameters('allowedVnetRgp'), 'Microsoft.Network/virtualNetworks', parameters('allowedVnetName'))]"
+        },
+        "registrationEnabled": "[parameters('dnsRegistrationEnabled')]"
+      }
+    }
+  ]
+}
