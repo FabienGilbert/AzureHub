@@ -24,13 +24,7 @@
             "type": "string",
             "metadata": {
                 "description": "Specify the environment prefix that will be added to all Resource Group and Resource names.."
-            },
-            "allowedValues": [
-                "C",
-                "D",
-                "T",
-                "L"
-            ]
+            }
         },
         "SubscriptionOrdinalPrefix": {
             "type": "string",
@@ -38,72 +32,11 @@
                 "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
             }
         },
-        "environmentSupernet": {
-            "type": "string",
+        "addressPrefixes": {
+            "type": "object",
             "metadata": {
-                "description": "Supernet that includes all subnets in use in the environment."
+                "description": "Address prefixes"
             }
-        },
-        "subnetPrefixAG": {
-            "type": "string",
-            "metadata": {
-                "description": "AppGateway VNET subnet prefix."
-            }
-        },
-        "subnetPrefixAP": {
-            "type": "string",
-            "metadata": {
-                "description": "App VNET subnet prefix."
-            }
-        },
-        "subnetPrefixDS": {
-            "type": "string",
-            "metadata": {
-                "description": "AD Domain Services VNET subnet prefix."
-            }
-        },
-        "subnetPrefixFS": {
-            "type": "string",
-            "metadata": {
-                "description": "AD Federation Services VNET subnet prefix."
-            }
-        },
-        "subnetPrefixFW": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure Firewall VNET subnet prefix."
-            }
-        },
-        "subnetPrefixJP": {
-            "type": "string",
-            "metadata": {
-                "description": "Jump server VNET subnet prefix."
-            }
-        },
-        "subnetPrefixRP": {
-            "type": "string",
-            "metadata": {
-                "description": "Web Application Proxy VNET subnet prefix."
-            }
-        },
-        "subnetPrefixVG": {
-            "type": "string",
-            "metadata": {
-                "description": "VNET Gateway subnet prefix."
-            }
-        },
-        "dnsServers": {
-            "type": "array",
-            "metadata": {
-                "description": "DNS Servers that will be configured in the VNET."
-            }
-        },
-        "allowedOnPremsPublicIps": {
-            "type": "array",
-            "metadata": {
-                "description": "On-premises Public IP Addresses allowed to connect through resources' firewall"
-            },
-            "defaultValue": []
         },
         "applicationTag": {
             "type": "string",
@@ -115,13 +48,7 @@
             "type": "string",
             "metadata": {
                 "description": "Environment Resource Tag"
-            },
-            "allowedValues": [
-                "Core",
-                "Dev",
-                "Test",
-                "Lab"
-            ]
+            }
         },
         "securityRulesDefinition": {
             "type": "array",
@@ -140,7 +67,8 @@
         "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
         "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
         "nsgRgp": "[concat(variables('leftPrefix'),'NSG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
-        "nsgName": "[concat(variables('leftPrefix'), 'SNT-', toUpper(parameters('nsgTier')) , '-', replace(parameters(concat('subnetPrefix', toUpper(parameters('nsgTier')))), '/', '_'), '-NSG')]",
+        "subnetPrefix": "[parameters('addressPrefixes')[parameters('nsgTier')]]",
+        "nsgName": "[concat(variables('leftPrefix'), 'SNT-', toUpper(parameters('nsgTier')) , '-', replace(variables('subnetPrefix'), '/', '_'), '-NSG')]",
         "nsgTags": {
             "Component": "Network Security Group",
             "Application": "[parameters('applicationTag')]",
@@ -159,8 +87,8 @@
                     "description": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].description]",
                     "access": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].access]",
                     "protocol": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].protocol]",
-                    "sourceAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.value)]",
-                    "destinationAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.value)]",
+                    "sourceAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes,'parameter'), array(parameters('addressPrefixes')[parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.parameter]), parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.value)]",
+                    "destinationAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes,'parameter'), array(parameters('addressPrefixes')[parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.parameter]), parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.value)]",
                     "sourcePortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].sourcePortRanges]",
                     "destinationPortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationPortRanges]"
                 }
