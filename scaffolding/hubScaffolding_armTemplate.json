@@ -976,8 +976,8 @@
       "apiVersion": "2020-06-01",
       "name": "automationPrivateDnsZone",
       "condition": "[equals(parameters('deployAua'), 'True')]",
-      "dependsOn": [
-        "[concat('logWks_', variables('logWksName'))]"
+      "dependsOn": [        
+        "[concat('hubVnet_', variables('vnetName'))]"
       ],
       "resourceGroup": "[variables('dnsRgp')]",
       "properties": {
@@ -1142,7 +1142,8 @@
       "condition": "[equals(parameters('deployAfw'), 'True')]",
       "resourceGroup": "[variables('netRgp')]",
       "dependsOn": [
-        "publicIpLoop"
+        "publicIpLoop",                
+        "[concat('hubVnet_', variables('vnetName'))]"
       ],
       "properties": {
         "mode": "Incremental",
