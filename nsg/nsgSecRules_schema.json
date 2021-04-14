@@ -6,6 +6,19 @@
     "parameters": {
       "type": "object",
       "properties": {
+        "nsgTier": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "additionalProperties": false
+        },
         "securityRulesDefinition": {
           "type": "object",
           "properties": {
@@ -219,6 +232,7 @@
         }
       },
       "required": [
+        "nsgTier",
         "securityRulesDefinition"
       ],
       "additionalProperties": false
