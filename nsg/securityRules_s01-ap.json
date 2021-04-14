@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsgSecRules_schema.json",
   "parameters": {
+    "nsgTier": {
+      "value": "AP"
+    },
     "securityRulesDefinition": {
       "value": [
         {
@@ -11,7 +14,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "subnetPrefixDS"
+            "parameter": "subnetPrefixAP"
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -49,48 +52,16 @@
         },
         {
           "direction": "inbound",
-          "priority": 220,
-          "name": "AllowInBoundActiveDirectoryTCP",
-          "description": "Allow InBound Active Directory TCP traffic from the Subnets to the Domain Controllers",
-          "access": "allow",
-          "protocol": "tcp",
-          "sourceAddressPrefixes": {
-            "parameter": "environmentSupernet"            
-          },
-          "destinationAddressPrefixes": {
-            "value": [
-              "VirtualNetwork"
-            ]
-          },
-          "sourcePortRanges": [
-            "*"
-          ],
-          "destinationPortRanges": [
-            "53",
-            "88",
-            "135",
-            "137-139",
-            "389",
-            "445",
-            "464",
-            "636",
-            "3268",
-            "3269",
-            "49152-65535"
-          ]
-        },
-        {
-          "direction": "inbound",
-          "priority": 230,
-          "name": "AllowInBoundActiveDirectoryUDP",
-          "description": "Allow InBound Active Directory UDP traffic from the Subnets to the Domain Controllers",
+          "priority": 250,
+          "name": "AllowInBoundCaUdp",
+          "description": "Allow InBound UDP certification authority traffic",
           "access": "allow",
           "protocol": "udp",
           "sourceAddressPrefixes": {
-            "parameter": "environmentSupernet"            
+            "parameter": "environmentSupernet"
           },
           "destinationAddressPrefixes": {
-            "value": [
+            "value":[
               "VirtualNetwork"
             ]
           },
@@ -98,14 +69,8 @@
             "*"
           ],
           "destinationPortRanges": [
-            "53",
-            "88",
-            "123",
-            "137-139",
-            "389",
-            "464",
-            "49152-65535"
-          ] 
+            "137-139"
+          ]
         },
         {
           "direction": "inbound",
@@ -168,7 +133,7 @@
             ]
           },
           "destinationAddressPrefixes": {
-            "parameter": "subnetPrefixDS"
+            "parameter": "subnetPrefixAP"
           },
           "sourcePortRanges": [
             "*"
@@ -176,6 +141,66 @@
           "destinationPortRanges": [
             "*"
           ]
+        },        
+        {
+          "direction": "outbound",
+          "priority": 220,
+          "name": "AllowOutBoundActiveDirectoryTCP",
+          "description": "Allow OutBound Active Directory TCP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixDS"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "135",
+            "137-139",
+            "389",
+            "445",
+            "464",
+            "636",
+            "3268",
+            "3269",
+            "49152-65535"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 230,
+          "name": "AllowOutBoundActiveDirectoryUDP",
+          "description": "Allow OutBound Active Directory UDP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixDS"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "123",
+            "137-139",
+            "389",
+            "464",
+            "49152-65535"
+          ] 
         },
         {
           "direction": "outbound",

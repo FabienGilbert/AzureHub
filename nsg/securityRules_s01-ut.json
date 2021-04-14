@@ -1,0 +1,152 @@
+{
+  "$schema": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsgSecRules_schema.json",
+  "parameters": {
+    "nsgTier": {
+      "value": "UT"
+    },
+    "securityRulesDefinition": {
+      "value": [
+        {
+          "direction": "inbound",
+          "priority": 200,
+          "name": "AllowInBoundIntraSubnetTraffic",
+          "description": "Allow InBound Intra-Subnet Traffic InBound",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "parameter": "subnetPrefixUT"
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 1980,
+          "name": "DenyInBoundVnetUDP",
+          "description": "Deny Inbound UDP Traffic from all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]            
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 1990,
+          "name": "DenyInBoundVnetTCP",
+          "description": "Deny Inbound TCP Traffic from all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 240,
+          "name": "AllowOutBoundTrafficToSupernet",
+          "description": "Allow OutBound Traffic to Environment Supernet",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "environmentSupernet"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 1980,
+          "name": "DenyOutBoundVnetTCP",
+          "description": "Deny Outbound TCP Traffic to all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 1990,
+          "name": "DenyOutBoundVnetUDP",
+          "description": "Deny Outbound UDP Traffic to all Azure and on-premises subnets.",
+          "access": "deny",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"            
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        }
+      ]
+    }
+  }
+}

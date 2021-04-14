@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/nsg/nsgSecRules_schema.json",
   "parameters": {
+    "nsgTier": {
+      "value": "AT"
+    },
     "securityRulesDefinition": {
       "value": [
         {
@@ -11,7 +14,7 @@
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
-            "parameter": "subnetPrefixJP"
+            "parameter": "subnetPrefixAT"
           },
           "destinationAddressPrefixes": {
             "value": [
@@ -23,6 +26,50 @@
           ],
           "destinationPortRanges": [
             "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 210,
+          "name": "AllowJumpServersInBound",
+          "description": "Allow Jump Servers InBound",
+          "access": "allow",
+          "protocol": "*",
+          "sourceAddressPrefixes": {
+            "parameter": "subnetPrefixJP"            
+          },
+          "destinationAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "*"
+          ]
+        },
+        {
+          "direction": "inbound",
+          "priority": 250,
+          "name": "AllowInBoundCaUdp",
+          "description": "Allow InBound UDP certification authority traffic",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "parameter": "environmentSupernet"
+          },
+          "destinationAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "137-139"
           ]
         },
         {
@@ -75,9 +122,9 @@
         },
         {
           "direction": "outbound",
-          "priority": 240,
-          "name": "AllowOutBoundTrafficToSupernet",
-          "description": "Allow OutBound Traffic to Environment Supernet",
+          "priority": 200,
+          "name": "AllowOutBoundIntraSubnetTraffic",
+          "description": "Allow OutBound Intra-Subnet Traffic InBound",
           "access": "allow",
           "protocol": "*",
           "sourceAddressPrefixes": {
@@ -86,13 +133,95 @@
             ]
           },
           "destinationAddressPrefixes": {
-            "parameter": "environmentSupernet"
+            "parameter": "subnetPrefixAT"
           },
           "sourcePortRanges": [
             "*"
           ],
           "destinationPortRanges": [
             "*"
+          ]
+        },        
+        {
+          "direction": "outbound",
+          "priority": 220,
+          "name": "AllowOutBoundActiveDirectoryTCP",
+          "description": "Allow OutBound Active Directory TCP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixDS"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "135",
+            "137-139",
+            "389",
+            "445",
+            "464",
+            "636",
+            "3268",
+            "3269",
+            "49152-65535"
+          ]
+        },
+        {
+          "direction": "outbound",
+          "priority": 230,
+          "name": "AllowOutBoundActiveDirectoryUDP",
+          "description": "Allow OutBound Active Directory UDP traffic to the Domain Controllers",
+          "access": "allow",
+          "protocol": "udp",
+          "sourceAddressPrefixes": {
+            "value":[
+              "VirtualNetwork"
+            ]          
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixDS"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "53",
+            "88",
+            "123",
+            "137-139",
+            "389",
+            "464",
+            "49152-65535"
+          ] 
+        },
+        {
+          "direction": "outbound",
+          "priority": 250,
+          "name": "AllowOutBoundADFS",
+          "description": "Allow OutBound HTTPS traffic to ADFS servers",
+          "access": "allow",
+          "protocol": "tcp",
+          "sourceAddressPrefixes": {
+            "value": [
+              "VirtualNetwork"
+            ]
+          },
+          "destinationAddressPrefixes": {
+            "parameter": "subnetPrefixFS"
+          },
+          "sourcePortRanges": [
+            "*"
+          ],
+          "destinationPortRanges": [
+            "443"
           ]
         },
         {
