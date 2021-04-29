@@ -6,10 +6,7 @@ configuration newActiveDirectoryForest
         [string] $keyVaultName,
  
         [Parameter(Mandatory)]
-        [string] $usernameSecretName,
- 
-        [Parameter(Mandatory)]
-        [string] $passwordSecretName,
+        [string] $DnsForwarder,
  
         [Parameter(Mandatory)]
         [string] $automationConnectionName
@@ -22,13 +19,7 @@ configuration newActiveDirectoryForest
  
     $automationConnection = Get-AutomationConnection -Name $automationConnectionName
     Connect-AzAccount -Tenant $automationConnection.TenantID -ApplicationId $automationConnection.ApplicationID -CertificateThumbprint $automationConnection.CertificateThumbprint
- 
-    $username = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $usernameSecretName).SecretValueText
- 
-    $password = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $passwordSecretName).SecretValue
- 
-    $credentials = New-Object System.Management.Automation.PSCredential ($username, $password)
- 
+  
     Node $AllNodes.NodeName
     {
         WaitForDisk Disk2
@@ -83,9 +74,9 @@ configuration newActiveDirectoryForest
        
         xADDomain FirstDS 
         {
-            DomainName = $DomainName
-            DomainAdministratorCredential = $DomainCreds
-            SafemodeAdministratorPassword = $DomainCreds
+            DomainName = $Node.DomainName
+            DomainAdministratorCredential = (New-Object System.Management.Automation.PSCredential ($Node.daUsername, ((Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.daUsername).SecretValue)))
+            SafemodeAdministratorPassword = (New-Object System.Management.Automation.PSCredential ($Node.daUsername, ((Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.daUsername).SecretValue)))
             DatabasePath = "F:\NTDS"
             LogPath = "F:\NTDS"
             SysvolPath = "F:\SYSVOL"
@@ -101,10 +92,10 @@ configuration newActiveDirectoryForest
         xADUser 'domainJoinUser'
         {
             Ensure = 'Present'
-            UserName = $DomainJoinUserName
-            Password = $DomainJoinPassword
+            UserName = $Node.djUsername
+            Password = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.djUsername).SecretValue
             PasswordNeverExpires = $true
-            DomainName = $DomainName
+            DomainName = $Node.DomainName
             Path = ("CN=Users,DC=" + $DomainName.replace(".",",DC="))
 			DependsOn = '[xDnsServerForwarder]SetForwarders'
         } 
@@ -117,11 +108,6 @@ configuration newActiveDirectoryForest
             Ensure = 'Present'
 			DependsOn = '[xADDomain]FirstDS'
         } 
-        User NonAdminUser
-        {
-            UserName = $username
-            Password = $credentials
-        }
         
         LocalConfigurationManager 
         {
