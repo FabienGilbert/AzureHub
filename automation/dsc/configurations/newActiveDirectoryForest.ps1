@@ -70,13 +70,18 @@ configuration newActiveDirectoryForest
             Ensure = "Present" 
             Name = "GPMC"
 			DependsOn = '[WindowsFeature]RSATADTools'
-        }          
+        }
+        
+        $daSecret = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.daUsername
+        $daCredentials = New-Object System.Management.Automation.PSCredential (($Node.DomainName + "\" + $Node.daUsername), $daSecret.SecretValue)
+        $djSecret = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.djUsername
+        $djCredentials = New-Object System.Management.Automation.PSCredential (($Node.DomainName + "\" + $Node.djUsername), $djSecret.SecretValue)
        
         xADDomain FirstDS 
         {
             DomainName = $Node.DomainName
-            DomainAdministratorCredential = (New-Object System.Management.Automation.PSCredential ($Node.daUsername, ((Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.daUsername).SecretValue)))
-            SafemodeAdministratorPassword = (New-Object System.Management.Automation.PSCredential ($Node.daUsername, ((Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.daUsername).SecretValue)))
+            DomainAdministratorCredential = $daCredentials
+            SafemodeAdministratorPassword = $daCredentials
             DatabasePath = "F:\NTDS"
             LogPath = "F:\NTDS"
             SysvolPath = "F:\SYSVOL"
@@ -93,7 +98,7 @@ configuration newActiveDirectoryForest
         {
             Ensure = 'Present'
             UserName = $Node.djUsername
-            Password = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.djUsername).SecretValue
+            Password = $djCredentials
             PasswordNeverExpires = $true
             DomainName = $Node.DomainName
             Path = ("CN=Users,DC=" + $Node.DomainName.replace(".",",DC="))
