@@ -96,13 +96,13 @@ configuration newActiveDirectoryForest
             Password = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $Node.djUsername).SecretValue
             PasswordNeverExpires = $true
             DomainName = $Node.DomainName
-            Path = ("CN=Users,DC=" + $DomainName.replace(".",",DC="))
+            Path = ("CN=Users,DC=" + $Node.DomainName.replace(".",",DC="))
 			DependsOn = '[xDnsServerForwarder]SetForwarders'
         } 
         xADOrganizationalUnit 'ServersOU'
         {
             Name = "Servers"
-            Path = ("DC=" + $DomainName.replace(".",",DC="))
+            Path = ("DC=" + $Node.DomainName.replace(".",",DC="))
             ProtectedFromAccidentalDeletion = $true
             Description = "Servers' OU"
             Ensure = 'Present'
