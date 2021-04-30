@@ -25,12 +25,7 @@
             "metadata": {
                 "description": "Environment prefix to include in the VM name(s)."
             },
-            "allowedValues": [
-                "C",
-                "D",
-                "T",
-                "L"
-            ]
+            "maxLength": 1
         },
         "SubscriptionOrdinalPrefix": {
             "type": "string",
