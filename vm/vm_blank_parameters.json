@@ -1,0 +1,162 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "RegionPrefix": {
+            "value": ""
+        },
+        "EnterprisePrefix": {
+            "value": ""
+        },
+        "ApplicationPrefix": {
+            "value": ""
+        },
+        "EnvironmentPrefix": {
+            "value": ""
+        },
+        "SubscriptionOrdinalPrefix": {
+            "value": ""
+        },
+        "vmComponentPrefix": {
+            "value": ""
+        },
+        "vmIncrementPrefixes": {
+            "value": []
+        },
+        "vmCount": {
+            "value": 1
+        },
+        "vnetSubnetName": {
+            "value": ""
+        },
+        "staticIpAddresses": {
+            "value": []
+        },
+        "dnsServers": {
+            "value": []
+        },
+        "vmSize": {
+            "value": ""
+        },
+        "ImagePublisher": {
+            "value": ""
+        },
+        "ImageOffer": {
+            "value": ""
+        },
+        "ImageSKU": {
+            "value": ""
+        },
+        "ImageVersion": {
+            "value": "latest"
+        },
+        "OSDiskType": {
+            "value": "Standard_LRS"
+        },
+        "OSDiskCache": {
+            "value": "ReadWrite"
+        },
+        "OSDiskSize": {
+            "value": ""
+        },
+        "dataDiskType": {
+            "value": "Standard_LRS"
+        },
+        "dataDiskCache": {
+            "value": "none"
+        },
+        "dataDiskSizes": {
+            "value": []
+        },
+        "localAdminUsername": {
+            "value": ""
+        },
+        "hubSubId": {
+            "value": ""
+        },
+        "customScriptStorageResourceGroup": {
+            "value": ""
+        },
+        "customScriptStorageAccount": {
+            "value": ""
+        },
+        "customScriptStorageContainer": {
+            "value": ""
+        },
+        "customScriptFiles": {
+            "value": ""
+        },
+        "customScriptCommand": {
+            "value": ""
+        },
+        "customScriptTimeStamp": {
+            "value": 0
+        },
+        "logAnalyticsWorkspaceResourceGroup": {
+            "value": ""
+        },
+        "logAnalyticsWorkspaceName": {
+            "value": ""
+        },
+        "automationAccountResourceGroup": {
+            "value": ""
+        },
+        "automationAccountName": {
+            "value": ""
+        },
+        "dscConfigurationName": {
+            "value": ""
+        },
+        "adDomainFqdn": {
+            "value": ""
+        },
+        "adDomainJoinUsername": {
+            "value": ""
+        },
+        "hubKeyVaultRgp": {
+            "value": ""
+        },
+        "hubKeyVaultName": {
+            "value": ""
+        },
+        "adOuPath": {
+            "value": ""
+        },
+        "encryptionVolumeType": {
+            "value": "All"
+        },
+        "encryptionKekUri": {
+            "value": ""
+        },
+        "componentTag": {
+            "value": "",
+            "metadata": {
+                "description": "Component tag"
+            }
+        },
+        "applicationTag": {
+            "value": "",
+            "metadata": {
+                "description": "Application tag"
+            }
+        },
+        "environmentTag": {
+            "value": "",
+            "metadata": {
+                "description": "Environment Resource Tag"
+            },
+            "allowedValues": [
+                "Core",
+                "Dev",
+                "Test",
+                "Lab"
+            ]
+        },
+        "availabilitySet": {
+            "value": false
+        },
+        "domainjoin": {
+            "value": false
+        }
+    }
+}
