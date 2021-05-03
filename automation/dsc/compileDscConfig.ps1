@@ -46,7 +46,7 @@ $stateConfFile = Get-Content -Path $ConfigFilePath
 $configName = $stateConfFile[0].Replace("configuration ", "")
 # Import State Configuration to Automation Account
 Write-Output ("Check for existing state configuration name " + [char]34 + $configName + [char]34 + "...")
-$stateConf = Get-AzAutomationDscConfiguration -ResourceGroupName $autoAccount.ResourceGroupName -AutomationAccountName $autoAccount.AutomationAccountName -Name $configName
+$stateConf = Get-AzAutomationDscConfiguration -ResourceGroupName $autoAccount.ResourceGroupName -AutomationAccountName $autoAccount.AutomationAccountName -Name $configName -ErrorAction:SilentlyContinue
 if ($stateConf) { Write-Output (" `tfound existing config last modified on " + $stateConf.LastModifiedTime + "."); $importConf = $ForceImportConfig }
 else { Write-Output " `tconfig does not yet exist"; $importConf = $true }
 if($importConf){
