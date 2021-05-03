@@ -1,4 +1,4 @@
-Configuration tzFwMgmt
+configuration utilityServer
 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DscResource -ModuleName 'NetworkingDsc'    
