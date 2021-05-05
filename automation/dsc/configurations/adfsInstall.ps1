@@ -1,4 +1,4 @@
-Configuration tzFwAdfs
+configuration adfsInstall
 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DSCResource -ModuleName 'ComputerManagementDsc'
