@@ -293,7 +293,9 @@
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('vmNICs')[copyIndex('nicLoop')].privateIpAddress]",
                             "subnet": "[lbfunc.GetSubnetId(parameters('networkResourceGroup'), parameters('vnetName'), parameters('vnetSubnet'))]",
-                            "loadBalancerBackendAddressPools": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
+                            "loadBalancerBackendAddressPools": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
+                            }
                         }
                     }
                 ]
