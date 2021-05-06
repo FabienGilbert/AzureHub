@@ -1,62 +1,14 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "RegionPrefix": {
+        "name": {
             "type": "string",
             "metadata": {
-                "description": "Specify the Region prefix that will be added to all Resource Group and Resource names."
+                "description": "Load balancer name"
             }
         },
-        "LogWksRegionPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the Region prefix that will be added to the Log Analytics Resource Group."
-            }
-        },
-        "EnterprisePrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the enterpise prefix that will be added to all Resource Group and Resource names.."
-            }
-        },
-        "EnvironmentPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the environment prefix that will be added to all Resource Group and Resource names.."
-            },
-            "allowedValues": [
-                "C",
-                "D",
-                "T",
-                "L"
-            ]
-        },
-        "SubscriptionOrdinalPrefix": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
-            }
-        },
-        "applicationTag": {
-            "type": "string",
-            "metadata": {
-                "description": "Application tag"
-            }
-        },
-        "environmentTag": {
-            "type": "string",
-            "metadata": {
-                "description": "Environment Resource Tag"
-            },
-            "allowedValues": [
-                "Core",
-                "Dev",
-                "Test",
-                "Lab"
-            ]
-        },
-        "lbSKU": {
+        "sku": {
             "type": "string",
             "defaultValue": "Basic",
             "allowedValues": [
@@ -67,7 +19,20 @@
                 "description": "Load Balancer SKU. Default: Basic"
             }
         },
-        "lbFrontendType": {
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "Load balancer tags"
+            }
+        },
+        "networkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Resource Group that contains the VNET and Public IP Address"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "frontendType": {
             "type": "string",
             "defaultValue": "private",
             "allowedValues": [
@@ -77,6 +42,13 @@
             "metadata": {
                 "description": "Load Balancer Frontend type. Default: Private"
             }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VNET to attach the Load Balancer private frontend to. Default to none for public frontend."
+            },
+            "defaultValue": ""
         },
         "vnetSubnet": {
             "type": "string",
@@ -183,58 +155,6 @@
             "defaultValue": "443"
         }
     },
-    "variables": {
-        "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
-        "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
-        "netRgp": "[concat(variables('leftPrefix'),'NET-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
-        "vnetName": "[concat(variables('leftPrefix'),'VNET-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
-        "lbName": "[concat(variables('leftPrefix'),'LB-',parameters('SubscriptionOrdinalPrefix'),parameters('lbIncrementPrefix'))]",
-        "lbTags": {
-            "Component": "[parameters('componentTag')]",
-            "Application": "[parameters('applicationTag')]",
-            "Environment": "[parameters('environmentTag')]"
-        },
-        "logRgp": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
-        "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('LogWksRegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
-        "copy": [
-            {
-                "name": "securityRules",
-                "count": "[length(parameters('securityRulesDefinition'))]",
-                "input": {
-                    "direction": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].direction]",
-                    "priority": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].priority]",
-                    "name": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].name]",
-                    "description": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].description]",
-                    "access": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].access]",
-                    "protocol": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].protocol]",
-                    "sourceAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].sourceAddressPrefixes.value)]",
-                    "destinationAddressPrefixes": "[if(contains(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes,'parameter'), array(parameters(parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.parameter)), parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationAddressPrefixes.value)]",
-                    "sourcePortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].sourcePortRanges]",
-                    "destinationPortRanges": "[parameters('securityRulesDefinition')[copyIndex('securityRules')].destinationPortRanges]"
-                }
-            },
-            {
-                "name": "deploymentSecurityRules",
-                "count": "[length(variables('securityRules'))]",
-                "input": {
-                    "direction": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].direction]",
-                    "priority": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].priority]",
-                    "name": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].name]",
-                    "description": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].description]",
-                    "access": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].access]",
-                    "protocol": "[variables('securityRules')[copyIndex('deploymentSecurityRules')].protocol]",
-                    "sourceAddressPrefix": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes[0], json('null'))]",
-                    "sourceAddressPrefixes": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourceAddressPrefixes, json('[]'))]",
-                    "destinationAddressPrefix": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes[0], json('null'))]",
-                    "destinationAddressPrefixes": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationAddressPrefixes, json('[]'))]",
-                    "sourcePortRange": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges[0], json('null'))]",
-                    "sourcePortRanges": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].sourcePortRanges, json('[]'))]",
-                    "destinationPortRange": "[if(equals(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges[0], json('null'))]",
-                    "destinationPortRanges": "[if(greater(length(variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges),1), variables('securityRules')[copyIndex('deploymentSecurityRules')].destinationPortRanges, json('[]'))]"
-                }
-            }
-        ]
-    },
     "functions": [
         {
             "namespace": "lbfunc",
@@ -286,77 +206,64 @@
             }
         }
     ],
+    "variables": {},
     "resources": [
         {
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
-            "name": "[concat('lb_', variables('lbName'))]",
-            "resourceGroup": "[variables('netRgp')]",
+            "apiVersion": "2020-07-01",
+            "name": "[parameters('name')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
             "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "apiVersion": "2020-07-01",
-                            "name": "[variables('lbName')]",
-                            "type": "Microsoft.Network/loadBalancers",
-                            "location": "[resourceGroup().location]",
-                            "tags": "[variables('lbTags')]",
-                            "sku": {
-                                "name": "[parameters('lbSKU')]"
-                            },
-                            "properties": {
-                                "frontendIPConfigurations": [
-                                    {
-                                        "name": "[parameters('frontEndName')]",
-                                        "properties": {
-                                            "subnet": "[if(equals(parameters('lbFrontendType'), 'private'), lbfunc.GetSubnetId(variables('netRgp'),variables('vnetName'),parameters('vnetSubnet')), json('null'))]",
-                                            "privateIPAddress": "[if(equals(parameters('lbFrontendType'), 'private'),parameters('staticPrivateIp'), json('null'))]",
-                                            "privateIPAllocationMethod": "[if(equals(parameters('lbFrontendType'), 'private'),parameters('privateIpAllocationMethod'), json('null'))]",
-                                            "publicIPAddress": "[if(equals(parameters('lbFrontendType'), 'public'), lbfunc.GetResourceId(variables('netRgp'),parameters('publicIPName'),'Microsoft.Network/publicIPAddresses'), json('null'))]"
-                                        }
-                                    }
-                                ],
-                                "backendAddressPools": [
-                                    {
-                                        "name": "[parameters('backendPoolName')]"
-                                    }
-                                ],
-                                "probes": [
-                                    {
-                                        "properties": {
-                                            "protocol": "[parameters('probeProtocol')]",
-                                            "port": "[parameters('probePort')]",
-                                            "requestPath": "[parameters('probeRequestPath')]"
-                                        },
-                                        "name": "[parameters('probeName')]"
-                                    }
-                                ],
-                                "loadBalancingRules": [
-                                    {
-                                        "properties": {
-                                            "frontendIPConfiguration": {
-                                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lbName')), '/frontendIpConfigurations/', parameters('frontEndName'))]"
-                                            },
-                                            "backendAddressPool": {
-                                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lbName')), '/frontendIpConfigurations/', parameters('backendPoolName'))]"
-                                            },
-                                            "probe": {
-                                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lbName')), '/probes/', parameters('probeName'))]"
-                                            },
-                                            "protocol": "[parameters('lbRuleProtocol')]",
-                                            "frontendPort": "[parameters('lbRuleFrontEndPort')]"
-                                        },
-                                        "name": "[parameters('lbRuleName')]"
-                                    }
-                                ]
-                            }
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[parameters('frontEndName')]",
+                        "properties": {
+                            "subnet": "[if(equals(parameters('frontendType'), 'private'), lbfunc.GetSubnetId(parameters('networkResourceGroup'), parameters('vnetName'), parameters('vnetSubnet')), json('null'))]",
+                            "privateIPAddress": "[if(equals(parameters('frontendType'), 'private'),parameters('staticPrivateIp'), json('null'))]",
+                            "privateIPAllocationMethod": "[if(equals(parameters('frontendType'), 'private'),parameters('privateIpAllocationMethod'), json('null'))]",
+                            "publicIPAddress": "[if(equals(parameters('frontendType'), 'public'), lbfunc.GetResourceId(parameters('networkResourceGroup'), parameters('publicIPName'),'Microsoft.Network/publicIPAddresses'), json('null'))]"
                         }
-                    ]
-                }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[parameters('backendPoolName')]"
+                    }
+                ],
+                "probes": [
+                    {
+                        "properties": {
+                            "protocol": "[parameters('probeProtocol')]",
+                            "port": "[parameters('probePort')]",
+                            "requestPath": "[parameters('probeRequestPath')]"
+                        },
+                        "name": "[parameters('probeName')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('frontEndName'))]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('backendPoolName'))]"
+                            },
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/probes/', parameters('probeName'))]"
+                            },
+                            "protocol": "[parameters('lbRuleProtocol')]",
+                            "frontendPort": "[parameters('lbRuleFrontEndPort')]"
+                        },
+                        "name": "[parameters('lbRuleName')]"
+                    }
+                ]
             }
         }
-    ]
+    ],
+    "outputs": {}
 }
