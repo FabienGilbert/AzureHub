@@ -271,6 +271,7 @@
     "autoRgp": "[concat(variables('leftPrefix'),'AUTO-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "addsRgp": "[concat(variables('leftPrefix'),'ADDS-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "adfsRgp": "[concat(variables('leftPrefix'),'ADFS-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "wapRgp": "[concat(variables('leftPrefix'),'WAP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "jumpRgp": "[concat(variables('leftPrefix'),'JUMP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "dnsRgp": "[concat(variables('leftPrefix'),'DNS-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "funcRgp": "[concat(variables('leftPrefix'),'FUNC-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
@@ -334,6 +335,15 @@
         "location": "[parameters('location')]",
         "tags": {
           "Component": "Resource Group for Active Directory Federation Services-related resources",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('wapRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Web Application Proxy-related resources",
           "Application": "[parameters('applicationTag')]",
           "Environment": "[parameters('environmentTag')]"
         }
