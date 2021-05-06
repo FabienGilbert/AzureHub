@@ -147,7 +147,7 @@
             ],
             "defaultValue": "Tcp"
         },
-        "lbRuleFrontEndPort": {
+        "lbRulePort": {
             "type": "string",
             "metadata": {
                 "description": "Load balancer rule frontend port"
@@ -264,7 +264,8 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/probes/', parameters('probeName'))]"
                             },
                             "protocol": "[parameters('lbRuleProtocol')]",
-                            "frontendPort": "[parameters('lbRuleFrontEndPort')]"
+                            "frontendPort": "[parameters('lbRulePort')]",
+                            "backendPort": "[parameters('lbRulePort')]"
                         },
                         "name": "[parameters('lbRuleName')]"
                     }
