@@ -246,7 +246,7 @@
                         "properties": {
                             "protocol": "[parameters('probeProtocol')]",
                             "port": "[parameters('probePort')]",
-                            "requestPath": "[parameters('probeRequestPath')]"
+                            "requestPath": "[if(equals(parameters('probeRequestPath'),''), json('null'), parameters('probeRequestPath'))]"
                         },
                         "name": "[parameters('probeName')]"
                     }
