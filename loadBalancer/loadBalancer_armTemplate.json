@@ -153,6 +153,13 @@
                 "description": "Load balancer rule frontend port"
             },
             "defaultValue": "443"
+        },
+        "vmNICs": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of VM Network Interface Cards to attach to the load balancer backend"
+            },
+            "defaultValue": []
         }
     },
     "functions": [
@@ -251,7 +258,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('frontEndName'))]"
                             },
                             "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('backendPoolName'))]"
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
                             },
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/probes/', parameters('probeName'))]"
@@ -260,6 +267,33 @@
                             "frontendPort": "[parameters('lbRuleFrontEndPort')]"
                         },
                         "name": "[parameters('lbRuleName')]"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('vmNICs')[copyIndex('nicLoop')].name]",
+            "apiVersion": "2020-07-01",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[length(parameters('vmNICs'))]"
+            },
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('vmNICs')[copyIndex('nicLoop')].tags]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('name'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {                            
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('vmNICs')[copyIndex('nicLoop')].privateIpAddress]",
+                            "subnet": "[lbfunc.GetSubnetId(parameters('networkResourceGroup'), parameters('vnetName'), parameters('vnetSubnet'))]",
+                            "loadBalancerBackendAddressPools": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
+                        }
                     }
                 ]
             }
