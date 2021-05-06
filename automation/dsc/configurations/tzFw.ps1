@@ -1,4 +1,4 @@
-Configuration tzFw
+configuration tzFw
 {
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
     Import-DSCResource -ModuleName 'ComputerManagementDsc'
