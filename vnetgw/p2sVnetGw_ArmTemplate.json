@@ -49,7 +49,12 @@
         "Basic",
         "VpnGw1",
         "VpnGw2",
-        "VpnGw3"
+        "VpnGw3",
+        "VpnGw1AZ",
+        "VpnGw2AZ",
+        "VpnGw3AZ",
+        "VpnGw4AZ",
+        "VpnGw5AZ"
       ],
       "metadata": {
         "description": "The Sku of the Gateway. This must be one of Basic or VpnGw[1-3]."
