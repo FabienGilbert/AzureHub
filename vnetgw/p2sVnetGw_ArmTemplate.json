@@ -1,0 +1,168 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "VNET Gateway location"
+      }
+    },
+    "gatewayName": {
+      "type": "string",
+      "metadata": {
+        "description": "Arbitrary name for the new gateway"
+      }
+    },
+    "vpnType": {
+      "type": "string",
+      "metadata": {
+        "description": "Route based or policy based"
+      },
+      "allowedValues": [
+        "RouteBased",
+        "PolicyBased"
+      ]
+    },
+    "VNETResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Arbitrary name for the Azure Virtual Network Resource Group"
+      }
+    },
+    "VNETName": {
+      "type": "string",
+      "metadata": {
+        "description": "Arbitrary name for the Azure Virtual Network"
+      }
+    },
+    "gatewayPublicIPName": {
+      "type": "string",
+      "metadata": {
+        "description": "Arbitrary name for public IP resource used for the new azure gateway"
+      }
+    },
+    "gatewaySku": {
+      "type": "string",
+      "allowedValues": [
+        "Basic",
+        "VpnGw1",
+        "VpnGw2",
+        "VpnGw3"
+      ],
+      "metadata": {
+        "description": "The Sku of the Gateway. This must be one of Basic or VpnGw[1-3]."
+      }
+    },
+    "BgpEnabled": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "p2sVpnClientAddressPool": {
+      "type": "array",
+      "metadata": {
+        "description": "P2S VPN clients address pool prefixes"
+      }
+    },
+    "p2svpnClientProtocols": {
+      "type": "array",
+      "metadata": {
+        "description": "P2S VPN clients protocol"
+      },
+      "allowedValues": [
+        "IkeV2",
+        "SSTP",
+        "OpenVPN"
+      ],
+      "defaultValue": [
+        "OpenVPN"
+      ]
+    },
+    "AzureVpnAppId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Azure VPN Application Id"
+      },
+      "defaultValue": "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
+    },
+    "tenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the Azure AD Tenant ID."
+      }
+    },
+    "applicationTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Application tag"
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment Resource Tag"
+      },
+      "allowedValues": [
+        "Core",
+        "Dev",
+        "Test",
+        "Lab"
+      ]
+    }
+  },
+  "variables": {
+    "vnetID": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',parameters('VNETResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('VNETName'))]",
+    "gatewaySubnetRef": "[concat(variables('vnetID'),'/subnets/GatewaySubnet')]",
+    "vnetGwTags": {
+      "Component": "VNET Gateway for P2S VPN clients",
+      "Application": "[parameters('applicationTag')]",
+      "Environment": "[parameters('environmentTag')]"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2020-06-01",
+      "type": "Microsoft.Network/virtualNetworkGateways",
+      "name": "[parameters('gatewayName')]",
+      "tags": "[variables('vnetGwTags')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('gatewaySubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPName'))]"
+              }
+            },
+            "name": "vnetGatewayConfig"
+          }
+        ],
+        "sku": {
+          "name": "[parameters('gatewaySku')]",
+          "tier": "[parameters('gatewaySku')]"
+        },
+        "gatewayType": "Vpn",
+        "vpnType": "[parameters('vpnType')]",
+        "enableBgp": "[parameters('BgpEnabled')]",
+        "vpnClientConfiguration": {
+          "vpnClientAddressPool": {
+            "addressPrefixes": "[parameters('p2sVpnClientAddressPool')]"
+          },
+          "vpnClientProtocols": "[parameters('p2svpnClientProtocols')]",
+          "vpnClientRootCertificates": [],
+          "vpnClientRevokedCertificates": [],
+          "radiusServers": [],
+          "vpnClientIpsecPolicies": [],
+          "aadTenant": "[concat('https://login.microsoftonline.com/', parameters('tenantId'), '/')]",
+          "aadAudience": "[parameters('AzureVpnAppId')]",
+          "aadIssuer": "[concat('https://sts.windows.net/', parameters('tenantId'), '/')]"
+        }
+      }
+    }
+  ]
+}
