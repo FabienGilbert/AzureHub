@@ -43,7 +43,7 @@ param (
 # Get Azure Firewall
 Write-Output ("`r`nLooking for firewall " + [char]34 + $firewall + [char]34 + " in Resource Group " + [char]34 + $ResourceGroup + [char]34 + "...")
 $azfw = Get-AzFirewall -ResourceGroupName $ResourceGroup -Name $Firewall
-if(azfw){Write-Output ("`tfound firewall resource id: " + $azfw.Id)}
+if($azfw){Write-Output ("`tfound firewall resource id: " + $azfw.Id)}
 else{Write-Error -Message ("Could not find firewall " + [char]34 + $firewall + [char]34 + " in Resource Group " + [char]34 + $ResourceGroup + [char]34 + ".");exit}
 # Check status
 if($State -eq "deallocated" -and !($azfw.IpConfigurations)){Write-Output ("`r`nFirewall already deallocated.")}
