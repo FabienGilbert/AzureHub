@@ -1,0 +1,775 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "tenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the Azure AD Tenant ID."
+      }
+    },
+    "subscriptionId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the subscription ID."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the location for the deployment, resource group and resources."
+      }
+    },
+    "RegionPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the Region prefix that will be added to all Resource Group and Resource names."
+      }
+    },
+    "EnterprisePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the enterpise prefix that will be added to all Resource Group and Resource names.."
+      }
+    },
+    "EnvironmentPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the environment prefix that will be added to all Resource Group and Resource names.."
+      }
+    },
+    "SubscriptionOrdinalPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify the subscription ordinal prefix that will be added to all Resource Group and Resource names. For instance: S01"
+      }
+    },
+    "addressPrefixes": {
+      "type": "array",
+      "metadata": {
+        "description": "Address Prefixes that will be configured into the VNET."
+      }
+    },
+    "subnetPrefixVG": {
+      "type": "string",
+      "metadata": {
+        "description": "VNET Gateway subnet prefix."
+      }
+    },
+    "subnetPrefixAG": {
+      "type": "string",
+      "metadata": {
+        "description": "AppGateway VNET subnet prefix."
+      }
+    },
+    "subnetPrefixFW": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Firewall VNET subnet prefix."
+      }
+    },
+    "subnetPrefixUT": {
+      "type": "string",
+      "metadata": {
+        "description": "Utility servers VNET subnet prefix."
+      }
+    },
+    "subnetPrefixDB": {
+      "type": "string",
+      "metadata": {
+        "description": "DB VNET subnet prefix."
+      }
+    },
+    "subnetPrefixAP": {
+      "type": "string",
+      "metadata": {
+        "description": "App VNET subnet prefix."
+      }
+    },
+    "subnetPrefixVD": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Desktop VNET subnet prefix."
+      }
+    },
+    "dnsServers": {
+      "type": "array",
+      "metadata": {
+        "description": "DNS Servers that will be configured in the VNET."
+      }
+    },
+    "keyVaultFullAccessObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure AD Object Id for full access Key Vault access policy"
+      }
+    },
+    "allowedOnPremsPublicIps": {
+      "type": "array",
+      "metadata": {
+        "description": "On-premises Public IP Addresses allowed to connect through resources' firewall"
+      },
+      "defaultValue": []
+    },
+    "logAnalyticsTier": {
+      "type": "string",
+      "metadata": {
+        "description": "Log Analytics Workspace Tier"
+      },
+      "allowedValues": [
+        "Free",
+        "Standard",
+        "Premium",
+        "PerNode",
+        "PerGB2018",
+        "Standalone",
+        "CapacityReservation"
+      ],
+      "defaultValue": "Free"
+    },
+    "logAnalyticsRetention": {
+      "type": "int",
+      "metadata": {
+        "description": "Log Analytics Workspace Retention"
+      },
+      "defaultValue": 7
+    },
+    "applicationTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Application tag"
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment Resource Tag"
+      }
+    },
+    "deployRgp": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Resource Groups"
+      }
+    },
+    "deployLws": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Log Analytics Workspace"
+      }
+    },    
+    "deployUdr": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy User Defined Routes"
+      }
+    },    
+    "deployNsg": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Network Security Groups"
+      }
+    },    
+    "deployVnt": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Virtual Network"
+      }
+    },    
+    "deployAkv": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Key Vaults"
+      }
+    },    
+    "deploySta": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy Storage Accounts"
+      }
+    },   
+    "deployNsf": {
+      "type": "string",
+      "defaultValue": "True",
+      "metadata": {
+        "description": "Deploy NSG Flow Logs"
+      }
+    }
+  },
+  "variables": {
+    "linkedTemplateContainerUri": "https://raw.githubusercontent.com/FabienGilbert/AzureHub/master/linkedTemplates",
+    "leftPrefix": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-')]",
+    "nsgRgp": "[concat(variables('leftPrefix'),'NSG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "netRgp": "[concat(variables('leftPrefix'),'NET-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "akvRgp": "[concat(variables('leftPrefix'),'AKV-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "logRgp": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOG-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "autoRgp": "[concat(variables('leftPrefix'),'AUTO-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "jumpRgp": "[concat(variables('leftPrefix'),'JUMP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "dnnRgp": "[concat(variables('leftPrefix'),'DNN-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "funcRgp": "[concat(variables('leftPrefix'),'FUNC-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "resourceGroups": [
+      {
+        "name": "[variables('nsgRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Network Security Groups",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('netRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Network-related resources",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('akvRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Key Vaults",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('logRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Log Analytics-related resources",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('autoRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Automation-related resources",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('jumpRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for jump servers",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('dnnRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for DNN-related resources",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('funcRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Azure Functions",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      }
+    ],
+    "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
+    "nsgStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'nsgstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
+    "firewallSubnetName": "AzureFirewallSubnet",
+    "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
+    "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
+    "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "vdSubnetName": "[concat(variables('leftPrefix'), 'SNT-VD-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "subnets": [
+      {
+        "name": "GatewaySubnet",
+        "ipPrefix": "[parameters('subnetPrefixVG')]",
+        "nsg": false,
+        "udr": true,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
+      },
+      {
+        "name": "AppGatewaySubnet",
+        "ipPrefix": "[parameters('subnetPrefixAG')]",
+        "nsg": false,
+        "udr": false,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('firewallSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixFW')]",
+        "nsg": false,
+        "udr": false,
+        "serviceEndpoints": false,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('utilSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixUT')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('dbSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixDB')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('appSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixAP')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('vdSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixVD')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": true,
+        "privateEndpoints": false
+      }
+    ],
+    "copy": [
+      {
+        "name": "vnetSubnets",
+        "count": "[length(variables('subnets'))]",
+        "input": {
+          "SubnetName": "[variables('subnets')[copyIndex('vnetSubnets')].name]",
+          "addressPrefix": "[variables('subnets')[copyIndex('vnetSubnets')].ipPrefix]",
+          "NsgResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsg, json('true')), variables('nsgRgp'),'')]",
+          "NsgName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].nsg, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-NSG'),'')]",
+          "UdrResourceGroup": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].udr, json('true')), variables('netRgp'),'')]",
+          "UdrName": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].udr, json('true')), concat(variables('subnets')[copyIndex('vnetSubnets')].name, '-UDR'),'')]",
+          "serviceEndpoints": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].serviceEndpoints, json('true')), variables('serviceEndpoints'),'')]",
+          "privateEndpointNetworkPolicies": "[if(equals(variables('subnets')[copyIndex('vnetSubnets')].privateEndpoints, json('true')), 'Disabled','Enabled')]"
+        }
+      }
+    ],
+    "serviceEndpoints": [
+      {
+        "service": "Microsoft.Storage"
+      },
+      {
+        "service": "Microsoft.Keyvault"
+      }
+    ],
+    "vnetName": "[concat(variables('leftPrefix'),'VNET-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
+    "virtualNetworkAcls": [
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "[variables('utilSubnetName')]",
+        "action": "allow"
+      },
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "[variables('dbSubnetName')]",
+        "action": "allow"
+      },
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "[variables('appSubnetName')]",
+        "action": "allow"
+      }
+    ],
+    "keyVaultAccessPolicy": [
+      {
+        "comments": "Full Access Group",
+        "tenantId": "[parameters('tenantId')]",
+        "objectId": "[parameters('keyVaultFullAccessObjectId')]",
+        "permissions": {
+          "keys": [
+            "all"
+          ],
+          "secrets": [
+            "all"
+          ],
+          "certificates": [
+            "all"
+          ]
+        }
+      },
+      {
+        "comments": "Backup Management Service",
+        "tenantId": "[parameters('tenantId')]",
+        "objectId": "54778c7d-c234-4db5-8d56-b3026641e834",
+        "permissions": {
+          "keys": [
+            "Get",
+            "List",
+            "Backup",
+            "Restore"
+          ],
+          "secrets": [
+            "Get",
+            "List",
+            "Backup",
+            "Restore"
+          ],
+          "certificates": []
+        }
+      }
+    ],
+    "keyVaults": [
+      {
+        "name": "[concat(variables('leftPrefix'),'AKV-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
+        "enableVaultForDeployment": true,
+        "enableVaultForDiskEncryption": true,
+        "enabledForTemplateDeployment": true,
+        "networkAclDefaultAction": "deny",
+        "virtualNetworkAcls": "[variables('virtualNetworkAcls')]",
+        "tags": {
+          "Component": "Key Vault for deployment passwords, encryption keys and SSL certificates",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      }
+    ],
+    "storageAccounts": [
+      {
+        "resourceGroup": "[variables('nsgRgp')]",
+        "name": "[variables('nsgStoreName')]",
+        "sku": "Standard_LRS",
+        "tier": "Cool",
+        "networkAclDefaultAction": "deny",
+        "virtualNetworkAcls": "[variables('virtualNetworkAcls')]",
+        "tags": {
+          "Component": "Storage account for NSG Flow Logs",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "[variables('resourceGroups')[copyIndex('rgpLoop')].name]",
+      "condition": "[equals(parameters('deployRgp'), 'True')]",
+      "copy": {
+        "name": "rgpLoop",
+        "count": "[length(variables('resourceGroups'))]"
+      },
+      "apiVersion": "2020-06-01",
+      "location": "[variables('resourceGroups')[copyIndex('rgpLoop')].location]",
+      "tags": "[variables('resourceGroups')[copyIndex('rgpLoop')].tags]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('logWks_', variables('logWksName'))]",
+      "condition": "[equals(parameters('deployLws'), 'True')]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "resourceGroup": "[variables('logRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/logAnalyticsWorkspace_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "serviceTier": {
+            "value": "[parameters('logAnalyticsTier')]"
+          },
+          "dataRetention": {
+            "value": "[parameters('logAnalyticsRetention')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Log Analytics Workspace",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('udr_', variables('subnets')[copyIndex('udrLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('udrLoop')].udr, json('true')), equals(parameters('deployUdr'), 'True'))]",
+      "dependsOn": [
+        "rgpLoop"
+      ],
+      "copy": {
+        "name": "udrLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('netRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/udr_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "routeTableName": {
+            "value": "[concat(variables('subnets')[copyIndex('udrLoop')].name, '-UDR')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Route Table",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('nsg_', variables('subnets')[copyIndex('nsgLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgLoop')].nsg, json('true')), equals(parameters('deployNsg'), 'True'))]",
+      "dependsOn": [
+        "[concat('logWks_', variables('logWksName'))]"
+      ],
+      "copy": {
+        "name": "nsgLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "[variables('nsgRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsg_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "networkSecurityGroupName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgLoop')].name, '-NSG')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Network Security Group",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('vnet_', variables('vnetName'))]",
+      "condition": "[equals(parameters('deployVnt'), 'True')]",
+      "resourceGroup": "[variables('netRgp')]",
+      "dependsOn": [
+        "udrLoop",
+        "nsgLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/vnet_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('vnetName')]"
+          },
+          "addressPrefixes": {
+            "value": "[parameters('addressPrefixes')]"
+          },
+          "subnets": {
+            "value": "[variables('vnetSubnets')]"
+          },
+          "dnsServers": {
+            "value": "[parameters('dnsServers')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": {
+              "Component": "Virtual Network",
+              "Application": "[parameters('applicationTag')]",
+              "Environment": "[parameters('environmentTag')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('keyVault_', variables('keyVaults')[copyIndex('keyVaultLoop')].name)]",
+      "condition": "[equals(parameters('deployAkv'), 'True')]",
+      "dependsOn": [
+        "[concat('vnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "keyVaultLoop",
+        "count": "[length(variables('keyVaults'))]"
+      },
+      "resourceGroup": "[variables('akvRgp')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/keyVault_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].name]"
+          },
+          "enableVaultForDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDeployment]"
+          },
+          "enableVaultForDiskEncryption": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enableVaultForDiskEncryption]"
+          },
+          "enabledForTemplateDeployment": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].enabledForTemplateDeployment]"
+          },
+          "accessPolicies": {
+            "value": "[variables('keyVaultAccessPolicy')]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "logAnalyticsWorkspaceResourceGroup": {
+            "value": "[variables('logRgp')]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('logWksName')]"
+          },
+          "tags": {
+            "value": "[variables('keyVaults')[copyIndex('keyVaultLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('storageAccount_', variables('storageAccounts')[copyIndex('storeLoop')].name)]",
+      "condition": "[equals(parameters('deploySta'), 'True')]",
+      "dependsOn": [
+        "[concat('vnet_', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "storeLoop",
+        "count": "[length(variables('storageAccounts'))]"
+      },
+      "resourceGroup": "[variables('storageAccounts')[copyIndex('storeLoop')].resourceGroup]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/storageAccount_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "StorageAccountName": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].name]"
+          },
+          "StorageAccountTier": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tier]"
+          },
+          "StorageAccountSku": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].sku]"
+          },
+          "networkAclDefaultAction": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].networkAclDefaultAction]"
+          },
+          "virtualNetworkAcls": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].virtualNetworkAcls]"
+          },
+          "networkAclSourceIpAddresses": {
+            "value": "[parameters('allowedOnPremsPublicIps')]"
+          },
+          "tags": {
+            "value": "[variables('storageAccounts')[copyIndex('storeLoop')].tags]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-06-01",
+      "name": "[concat('nsgFlowLog_', variables('subnets')[copyIndex('nsgFlowLogLoop')].name)]",
+      "condition": "[and(equals(variables('subnets')[copyIndex('nsgFlowLogLoop')].nsg, json('true')), equals(parameters('deployNsf'), 'True'))]",
+      "dependsOn": [
+        "storeLoop"
+      ],
+      "copy": {
+        "name": "nsgFlowLogLoop",
+        "count": "[length(variables('subnets'))]"
+      },
+      "resourceGroup": "NetworkWatcherRG",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('linkedTemplateContainerUri'), '/nsgFlowLog_armTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "nsgRgp": {
+            "value": "[variables('nsgRgp')]"
+          },
+          "nsgName": {
+            "value": "[concat(variables('subnets')[copyIndex('nsgFlowLogLoop')].name, '-NSG')]"
+          },
+          "storeName": {
+            "value": "[variables('nsgStoreName')]"
+          }
+        }
+      }
+    }
+  ]
+}
