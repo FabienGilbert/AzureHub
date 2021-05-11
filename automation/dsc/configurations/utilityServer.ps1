@@ -131,6 +131,11 @@ configuration utilityServer
             Ensure = "Present"
             Name = "Web-Mgmt-Tools"
             IncludeAllSubFeature = $true           
+        }         
+        WindowsFeature NPSRSAT
+        {
+            Ensure = "Present"
+            Name = "RSAT-NPAS"            
         }
     }
 }
