@@ -591,12 +591,54 @@
             }
         },
         {
-            "name": "[concat('vmAutomation_', variables('vmArray')[copyIndex()].vmName)]",
+            "name": "[concat('vmDomainJoin_', variables('vmArray')[copyIndex()].vmName)]",
+            "condition": "[equals(parameters('domainjoin'), json('true'))]",
             "apiVersion": "2020-06-01",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [                
                 "vmloop",
                 "vmCustomScriptLoop"
+            ],
+            "copy": {
+                "count": "[parameters('vmCount')]",
+                "name": "vmDomainJoinLoop"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('linkedTemplateContainerUri'), '/vmDomainJoin_armTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {
+                        "value": "[variables('vmArray')[copyIndex()].vmName]"
+                    },
+                    "domainToJoin": {
+                        "value": "[parameters('adDomainFqdn')]"
+                    },
+                    "domainUsername": {
+                        "value": "[parameters('adDomainJoinUsername')]"
+                    },
+                    "domainPassword": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "[concat('/subscriptions/', parameters('hubSubId'), '/resourceGroups/', parameters('hubKeyVaultRgp'), '/providers/Microsoft.KeyVault/vaults/', parameters('hubKeyVaultName'))]"
+                            },
+                            "secretName": "[parameters('adDomainJoinUsername')]"
+                        }
+                    },
+                    "ouPath": {
+                        "value": "[parameters('adOuPath')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat('vmAutomation_', variables('vmArray')[copyIndex()].vmName)]",
+            "apiVersion": "2020-06-01",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "vmDomainJoinLoop"
             ],
             "copy": {
                 "count": "[parameters('vmCount')]",
@@ -732,49 +774,6 @@
                     },
                     "resizeOSDisk": {
                         "value": "[parameters('encryptionResizeOSDisk')]"
-                    }
-                }
-            }
-        },
-        {
-            "name": "[concat('vmDomainJoin_', variables('vmArray')[copyIndex()].vmName)]",
-            "condition": "[equals(parameters('domainjoin'), json('true'))]",
-            "apiVersion": "2020-06-01",
-            "type": "Microsoft.Resources/deployments",
-            "dependsOn": [
-                "vmNetworkwatcherLoop",
-                "vmDiskEncryptionLoop"
-            ],
-            "copy": {
-                "count": "[parameters('vmCount')]",
-                "name": "vmDomainJoinLoop"
-            },
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('linkedTemplateContainerUri'), '/vmDomainJoin_armTemplate.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "vmName": {
-                        "value": "[variables('vmArray')[copyIndex()].vmName]"
-                    },
-                    "domainToJoin": {
-                        "value": "[parameters('adDomainFqdn')]"
-                    },
-                    "domainUsername": {
-                        "value": "[parameters('adDomainJoinUsername')]"
-                    },
-                    "domainPassword": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[concat('/subscriptions/', parameters('hubSubId'), '/resourceGroups/', parameters('hubKeyVaultRgp'), '/providers/Microsoft.KeyVault/vaults/', parameters('hubKeyVaultName'))]"
-                            },
-                            "secretName": "[parameters('adDomainJoinUsername')]"
-                        }
-                    },
-                    "ouPath": {
-                        "value": "[parameters('adOuPath')]"
                     }
                 }
             }
