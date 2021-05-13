@@ -277,7 +277,7 @@
                     {
                         "name": "privateFrontendPort",
                         "properties": {
-                            "Port": 443
+                            "Port": 80
                         }
                     },
                     {
@@ -320,10 +320,7 @@
                             "FrontendPort": {
                                 "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/privateFrontendPort')]"
                             },
-                            "Protocol": "Https",
-                            "sslCertificate": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
-                            }
+                            "Protocol": "Http"
                         }
                     },
                     {
