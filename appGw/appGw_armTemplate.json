@@ -275,7 +275,13 @@
                 ],
                 "frontendPorts": [
                     {
-                        "name": "httpsFrontend",
+                        "name": "privateFrontendPort",
+                        "properties": {
+                            "Port": 443
+                        }
+                    },
+                    {
+                        "name": "publicFrontendPort",
                         "properties": {
                             "Port": 443
                         }
@@ -312,7 +318,7 @@
                                 "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/privateIpFrontend')]"
                             },
                             "FrontendPort": {
-                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpsFrontend')]"
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/privateFrontendPort')]"
                             },
                             "Protocol": "Https",
                             "sslCertificate": {
@@ -327,7 +333,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/publicIpFrontend')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpsFrontend')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/publicFrontendPort')]"
                             },
                             "protocol": "Https",
                             "sslCertificate": {
