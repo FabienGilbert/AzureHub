@@ -91,6 +91,13 @@
                 "description": "cookie based affinity"
             }
         },
+        "affinityCookieName": {
+            "type": "string",
+            "metadata": {
+                "description": "affinity cookie name"
+            },
+            "defaultValue": "AppGatewayAffinityCookie"
+        },
         "zones": {
             "type": "array",
             "metadata": {
@@ -187,10 +194,29 @@
                 "description": "Name of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
             }
         },
-        "keyVaultSslCertificateUri": {
+        "keyvaultResourceGroup": {
             "type": "string",
             "metadata": {
-                "description": "uri to the Key Vault SSL certificate secret"
+                "description": "Resource Group of the Key Vault that holds the App Gateway SSL Certificate"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "keyvaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Key Vault that holds the App Gateway SSL Certificate"
+            }
+        },
+        "certificateName": {
+            "type": "string",
+            "metadata": {
+                "description": "Key Vault SSL Certificate Name"
+            }
+        },
+        "certificateVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Key Vault SSL Certificate Version"
             }
         }
     },
@@ -275,7 +301,8 @@
                         "properties": {
                             "Port": "[parameters('backendPort')]",
                             "Protocol": "[parameters('backendProtocol')]",
-                            "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",
+                            "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",                            
+                            "affinityCookieName": "[parameters('affinityCookieName')]",
                             "hostName": "[parameters('backendHostname')]",
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
@@ -350,7 +377,7 @@
                     {
                         "name": "[parameters('sslCertificateName')]",
                         "properties": {
-                            "keyVaultSecretId": "[parameters('keyVaultSslCertificateUri')]"
+                            "keyVaultSecretId": "[concat(reference(resourceId(parameters('keyvaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('keyvaultName')), '2019-09-01', 'full').properties.vaultUri, 'secrets/', parameters('certificateName'), '/', parameters('certificateVersion'))]"
                         }
                     }
                 ],
