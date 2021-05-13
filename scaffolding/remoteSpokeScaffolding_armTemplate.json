@@ -389,6 +389,9 @@
       },
       {
         "service": "Microsoft.Keyvault"
+      },
+      {
+        "service": "Microsoft.Sql"
       }
     ],
     "vnetName": "[concat(variables('leftPrefix'),'VNET-',parameters('SubscriptionOrdinalPrefix'),'-01')]",
