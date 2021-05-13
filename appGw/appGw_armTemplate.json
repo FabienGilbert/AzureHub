@@ -275,12 +275,6 @@
                 ],
                 "frontendPorts": [
                     {
-                        "name": "httpFrontend",
-                        "properties": {
-                            "Port": 80
-                        }
-                    },
-                    {
                         "name": "httpsFrontend",
                         "properties": {
                             "Port": 443
@@ -318,10 +312,12 @@
                                 "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/privateIpFrontend')]"
                             },
                             "FrontendPort": {
-                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpFrontend')]"
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpsFrontend')]"
                             },
-                            "Protocol": "Http",
-                            "SslCertificate": null
+                            "Protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
+                            }
                         }
                     },
                     {
