@@ -400,6 +400,13 @@
         "VnetSubscriptionId": "[parameters('subscriptionId')]",
         "VnetResourceGroup": "[variables('netRgp')]",
         "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "AppGatewaySubnet",
+        "action": "allow"
+      },
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
         "VnetSubnet": "[variables('utilSubnetName')]",
         "action": "allow"
       },
@@ -415,6 +422,13 @@
         "VnetResourceGroup": "[variables('netRgp')]",
         "VnetName": "[variables('vnetName')]",
         "VnetSubnet": "[variables('appSubnetName')]",
+        "action": "allow"
+      },
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "[variables('vdSubnetName')]",
         "action": "allow"
       }
     ],
