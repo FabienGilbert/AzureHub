@@ -635,6 +635,7 @@
         },
         {
             "name": "[concat('vmAutomation_', variables('vmArray')[copyIndex()].vmName)]",
+            "condition": "[not(equals(parameters('automationAccountName'),''))]",
             "apiVersion": "2020-06-01",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
