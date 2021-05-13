@@ -174,10 +174,17 @@
             },
             "defaultValue": false
         },
-        "UserAssignedIdentityId": {
+        "UserAssignedIdentityResourceGroup": {
             "type": "string",
             "metadata": {
-                "description": "Id of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
+                "description": "Resource Group of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "UserAssignedIdentityName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
             }
         },
         "keyVaultSslCertificateUri": {
@@ -364,7 +371,7 @@
                 "identity": {
                     "type": "UserAssigned",
                     "userAssignedIdentities": {
-                        "[parameters('UserAssignedIdentityId')]": {}
+                        "[resourceId(parameters('UserAssignedIdentityResourceGroup'), 'Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]": {}
                     }
                 }
             }
