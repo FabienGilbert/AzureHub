@@ -1,0 +1,379 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "virtual network resource group"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "virtual network name"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "subnet1",
+            "metadata": {
+                "description": "Subnet Name"
+            }
+        },
+        "applicationGatewayName": {
+            "type": "string",
+            "defaultValue": "applicationGateway1",
+            "metadata": {
+                "description": "application gateway name"
+            }
+        },
+        "applicationGatewaySize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_Small",
+                "Standard_Medium",
+                "Standard_Large"
+            ],
+            "defaultValue": "Standard_Small",
+            "metadata": {
+                "description": "application gateway size"
+            }
+        },
+        "applicationGatewayInstanceCount": {
+            "type": "int",
+            "allowedValues": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "defaultValue": 2,
+            "metadata": {
+                "description": "application gateway instance count"
+            }
+        },
+        "frontendPrivateIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Frontend static private IP address"
+            }
+        },
+        "frontendPublicIpAddressResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Resource Group"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "frontendPublicIpAddressName": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Name"
+            }
+        },
+        "cookieBasedAffinity": {
+            "type": "string",
+            "allowedValues": [
+                "Enabled",
+                "Disabled"
+            ],
+            "defaultValue": "Disabled",
+            "metadata": {
+                "description": "cookie based affinity"
+            }
+        },
+        "zones": {
+            "type": "array",
+            "metadata": {
+                "description": "Availability zones to deploy in"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "backendAddressPoolName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the backend address pool"
+            },
+            "defaultValue": "appGatewayBackendPool"
+        },
+        "backendHttpSettingName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the backend http settings"
+            },
+            "defaultValue": "appGatewayBackendHttpSettings"
+        },
+        "backendPort": {
+            "type": "int",
+            "defaultValue": 80,
+            "metadata": {
+                "description": "application gateway back end port"
+            }
+        },
+        "backendProtocol": {
+            "type": "string",
+            "metadata": {
+                "description": "Backend Protocol"
+            },
+            "defaultValue": "http",
+            "allowedValues": ["http", "https"]
+        },
+        "backendHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostname to probe the backend with (must match webserver binding's hostname)"
+            }
+        },
+        "probeName": {
+            "type": "string",
+            "metadata": {
+                "description": "Probe name"
+            },
+            "defaultValue": "backendHealthProbe"
+        },
+        "privateListenername": {
+            "type": "string",
+            "metadata": {
+                "description": "Private IP listener name"
+            },
+            "defaultValue": "appGatewayPrivateListener"
+        },
+        "publicListenername": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP listener name"
+            },
+            "defaultValue": "appGatewayPublicListener"
+        },
+        "sslCertificatename": {
+            "type": "string",
+            "metadata": {
+                "description": "SSL Certificate configuration name"
+            },
+            "defaultValue": "sslCertificate1"
+        },
+        "enableHttp2": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable HTTP 2"
+            },
+            "defaultValue": false
+        },
+        "UserAssignedIdentityResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "UserAssignedIdentityName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
+            }
+        },
+        "keyVaultSslCertificateUri": {
+            "type": "string",
+            "metadata": {
+                "description": "uri to the Key Vault SSL certificate secret"
+            }
+        }
+    },
+    "variables": {
+        "subnetRef": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+        "publicIPRef": "[resourceId(parameters('frontendPublicIpAddressResourceGroup'), 'Microsoft.Network/publicIPAddresses', parameters('frontendPublicIpAddressName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-07-01",
+            "name": "[parameters('applicationGatewayName')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "location": "[parameters('location')]",
+            "zones": "[parameters('zones')]",
+            "properties": {
+                "sku": {
+                    "name": "[parameters('applicationGatewaySize')]",
+                    "tier": "Standard",
+                    "capacity": "[parameters('applicationGatewayInstanceCount')]"
+                },
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "publicIpFrontend",
+                        "properties": {
+                            "PublicIPAddress": {
+                                "id": "[variables('publicIPRef')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "privateIpFrontend",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAddress": "[parameters('frontendPrivateIpAddress')]",
+                            "privateIPAllocationMethod": "Static"
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "httpFrontend",
+                        "properties": {
+                            "Port": 80
+                        }
+                    },
+                    {
+                        "name": "httpsFrontend",
+                        "properties": {
+                            "Port": 443
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[parameters('backendAddressPoolName')]",
+                        "properties": {
+                            "BackendAddresses": ""
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "[parameters('backendHttpSettingName')]",
+                        "properties": {
+                            "Port": "[parameters('backendPort')]",
+                            "Protocol": "[parameters('backendProtocol')]",
+                            "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",
+                            "hostName": "[parameters('backendHostname')]",
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
+                            }
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "[parameters('privateListenerName')]",
+                        "properties": {
+                            "FrontendIpConfiguration": {
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/privateIpFrontend')]"
+                            },
+                            "FrontendPort": {
+                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpFrontend')]"
+                            },
+                            "Protocol": "Http",
+                            "SslCertificate": null
+                        }
+                    },
+                    {
+                        "name": "[parameters('publicListenerName')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/publicIpFrontend')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpsFrontend')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
+                            }
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "Name": "private",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/', parameters('privateListenerName'))]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/', parameters('backendAddressPoolName'))]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "public",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/', parameters('publicListenerName'))]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/', parameters('backendAddressPoolName'))]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
+                            }
+                        }
+                    }
+                ],
+                "enableHttp2": "[parameters('enableHttp2')]",
+                "sslCertificates": [
+                    {
+                        "name": "[parameters('sslCertificateName')]",
+                        "properties": {
+                            "keyVaultSecretId": "[parameters('keyVaultSslCertificateUri')]"
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "[parameters('probeName')]",
+                        "properties": {
+                            "backendHttpSettings": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
+                                }
+                            ],
+                            "interval": 30,
+                            "minServers": 0,
+                            "path": "/",
+                            "protocol": "Http",
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "host": "[parameters('backendHostname')]"
+                        }
+                    }
+                ],
+                "identity": {
+                    "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                        "[resourceId(parameters('UserAssignedIdentityResourceGroup'), 'Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]": {}
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
