@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourceName": {
+      "type": "string",
+      "metadata": {
+        "description": "<USER ASSIGNED IDENTITY NAME>"
+      }
+    },
+    "componentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Component tag"
+      }
+    },
+    "applicationTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Application tag"
+      }
+    },
+    "environmentTag": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment Resource Tag"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "name": "[parameters('resourceName')]",
+      "apiVersion": "2018-11-30",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "application": "[parameters('applicationTag')]",
+        "environment": "[parameters('environmentTag')]",
+        "component": "[parameters('componentTag')]"
+      }
+    }
+  ],
+  "outputs": {
+    "identityName": {
+      "type": "string",
+      "value": "[parameters('resourceName')]"
+    }
+  }
+}
