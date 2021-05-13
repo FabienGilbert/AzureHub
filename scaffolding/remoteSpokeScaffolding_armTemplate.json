@@ -322,8 +322,8 @@
         "name": "AppGatewaySubnet",
         "ipPrefix": "[parameters('subnetPrefixAG')]",
         "nsg": false,
-        "udr": false,
-        "serviceEndpoints": false,
+        "udr": true,
+        "serviceEndpoints": true,
         "privateEndpoints": false
       },
       {
