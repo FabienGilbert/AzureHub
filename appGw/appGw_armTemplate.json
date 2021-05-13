@@ -28,17 +28,19 @@
                 "description": "application gateway name"
             }
         },
-        "applicationGatewaySize": {
+        "applicationGatewaySku": {
             "type": "string",
-            "allowedValues": [
-                "Standard_Small",
-                "Standard_Medium",
-                "Standard_Large"
-            ],
-            "defaultValue": "Standard_Small",
             "metadata": {
-                "description": "application gateway size"
-            }
+                "description": "application gateway sku size"
+            },
+            "defaultValue": "Standard_v2"
+        },
+        "applicationGatewayTier": {
+            "type": "string",
+            "metadata": {
+                "description": "application gateway tier"
+            },
+            "defaultValue": "Standard_v2"            
         },
         "applicationGatewayInstanceCount": {
             "type": "int",
@@ -205,8 +207,8 @@
             "zones": "[parameters('zones')]",
             "properties": {
                 "sku": {
-                    "name": "[parameters('applicationGatewaySize')]",
-                    "tier": "Standard",
+                    "name": "[parameters('applicationGatewaySku')]",
+                    "tier": "[parameters('applicationGatewayTier')]",
                     "capacity": "[parameters('applicationGatewayInstanceCount')]"
                 },
                 "gatewayIPConfigurations": [
