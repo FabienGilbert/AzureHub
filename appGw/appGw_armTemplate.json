@@ -40,7 +40,7 @@
             "metadata": {
                 "description": "application gateway tier"
             },
-            "defaultValue": "Standard_v2"            
+            "defaultValue": "Standard_v2"
         },
         "applicationGatewayInstanceCount": {
             "type": "int",
@@ -131,7 +131,7 @@
                 "description": "Backend Protocol"
             },
             "defaultValue": "http",
-            "allowedValues": ["http", "https"]
+            "allowedValues": [ "http", "https" ]
         },
         "backendHostname": {
             "type": "string",
@@ -160,6 +160,13 @@
             },
             "defaultValue": "appGatewayPublicListener"
         },
+        "sslCertificatename": {
+            "type": "string",
+            "metadata": {
+                "description": "SSL Certificate configuration name"
+            },
+            "defaultValue": "sslCertificate1"
+        },
         "enableHttp2": {
             "type": "bool",
             "metadata": {
@@ -179,6 +186,12 @@
             "metadata": {
                 "description": "Name of the User Assigned Identity the App Gateway will use to get the SSL certificate from Key Vault"
             }
+        },
+        "keyVaultSslCertificateUri": {
+            "type": "string",
+            "metadata": {
+                "description": "uri to the Key Vault SSL certificate secret"
+            }
         }
     },
     "variables": {
@@ -192,6 +205,12 @@
             "type": "Microsoft.Network/applicationGateways",
             "location": "[parameters('location')]",
             "zones": "[parameters('zones')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId(parameters('UserAssignedIdentityResourceGroup'), 'Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]": {}
+                }
+            },
             "properties": {
                 "sku": {
                     "name": "[parameters('applicationGatewaySku')]",
@@ -285,9 +304,12 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/publicIpFrontend')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpFrontend')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/httpsFrontend')]"
                             },
-                            "protocol": "Http"
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
+                            }
                         }
                     }
                 ],
@@ -324,6 +346,14 @@
                     }
                 ],
                 "enableHttp2": "[parameters('enableHttp2')]",
+                "sslCertificates": [
+                    {
+                        "name": "[parameters('sslCertificateName')]",
+                        "properties": {
+                            "keyVaultSecretId": "[parameters('keyVaultSslCertificateUri')]"
+                        }
+                    }
+                ],
                 "probes": [
                     {
                         "name": "[parameters('probeName')]",
@@ -343,13 +373,7 @@
                             "host": "[parameters('backendHostname')]"
                         }
                     }
-                ],
-                "identity": {
-                    "type": "UserAssigned",
-                    "userAssignedIdentities": {
-                        "[resourceId(parameters('UserAssignedIdentityResourceGroup'), 'Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]": {}
-                    }
-                }
+                ]
             }
         }
     ],
