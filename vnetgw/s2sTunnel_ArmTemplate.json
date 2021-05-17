@@ -1,0 +1,121 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "VNET Gateway location"
+            }
+        },
+        "LocalGatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "Local Network Gateway Name"
+            }
+        },
+        "LocalNetworkAddressPrefixes": {
+            "type": "string",
+            "metadata": {
+                "description": "On-premises network address prefixes"
+            }
+        },
+        "LocalGatewayIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "On-premises VPN gateway public IP address"
+            }
+        },
+        "ConnectionName": {
+            "type": "string",
+            "metadata": {
+                "description": "Connection Name"
+            }
+        },
+        "vnetGatewayResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "VNET Gateway Resource Group"
+            }
+        },
+        "vnetGatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Gateway Name"
+            }
+        },
+        "PreSharedKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "IPSec Tunnel PreShared Key"
+            }
+        },
+        "componentTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Component tag"
+            }
+        },
+        "applicationTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Application tag"
+            }
+        },
+        "environmentTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment Resource Tag"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('LocalGatewayName')]",
+            "apiVersion": "2020-06-01",
+            "type": "Microsoft.Network/localNetworkGateways",
+            "tags": {
+                "Component": "[parameters('componentTag')]",
+                "Application": "[parameters('applicationTag')]",
+                "Environment": "[parameters('environmentTag')]"
+            },
+            "location": "[parameters('location')]",
+            "properties": {
+                "localNetworkAddressSpace": {
+                    "addressPrefixes": "[parameters('LocalNetworkAddressPrefixes')]"
+                },
+                "gatewayIpAddress": "[parameters('LocalGatewayIpAddress')]"
+            }
+        },
+        {
+            "name": "[parameters('ConnectionName')]",
+            "apiVersion": "2020-06-01",
+            "type": "Microsoft.Network/connections",
+            "tags": {
+                "Component": "[parameters('componentTag')]",
+                "Application": "[parameters('applicationTag')]",
+                "Environment": "[parameters('environmentTag')]"
+            },
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/localNetworkGateways', parameters('LocalGatewayName'))]"
+            ],
+            "properties": {
+                "virtualNetworkGateway1": {
+                    "id": "[resourceId(parameters('vnetGatewayResourceGroup'), 'Microsoft.Network/virtualNetworkGateways', parameters('vnetGatewayName'))]"
+                },
+                "localNetworkGateway2": {
+                    "id": "[resourceId('Microsoft.Network/localNetworkGateways', parameters('LocalGatewayName'))]"
+                },
+                "connectionType": "IPsec",
+                "routingWeight": 10,
+                "sharedKey": "[parameters('PreSharedKey')]"
+            }
+        }
+    ],
+    "outputs": {}
+}
