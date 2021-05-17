@@ -16,7 +16,7 @@
             }
         },
         "LocalNetworkAddressPrefixes": {
-            "type": "string",
+            "type": "array",
             "metadata": {
                 "description": "On-premises network address prefixes"
             }
