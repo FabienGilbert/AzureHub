@@ -366,7 +366,7 @@
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
-        "privateEndpoints": false
+        "privateEndpoints": true
       },
       {
         "name": "[variables('vdSubnetName')]",
