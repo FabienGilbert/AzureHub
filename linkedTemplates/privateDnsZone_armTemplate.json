@@ -90,7 +90,7 @@
     },
     {
       "type": "Microsoft.Network/privateDnsZones/A",
-      "name": "[concat(parameters('zoneName'), '/A/', parameters('aRecords')[copyIndex('aLoop')].name)]",
+      "name": "[concat(parameters('zoneName'), '/', parameters('aRecords')[copyIndex('aLoop')].name)]",
       "condition": "[not(equals(parameters('aRecords'), json('[]')))]",
       "apiVersion": "2018-09-01",
       "copy": {
