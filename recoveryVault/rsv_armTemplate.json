@@ -73,6 +73,17 @@
                 "AddonAzureBackupProtectedInstance"
             ]
         },
+        "identity": {
+            "type": "string",
+            "metadata": {
+                "description": "Identity type"
+            },
+            "allowedValues": [
+                "SystemAssigned",
+                "None"
+            ],
+            "defaultValue": "None"
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -88,6 +99,9 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "sku": "[parameters('recoveryvaultsku')]",
+            "identity": {
+                "type": "[parameters('identity')]"
+            },
             "properties": {
             }
         },
