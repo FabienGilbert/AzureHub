@@ -92,6 +92,12 @@
         "description": "Virtual Desktop VNET subnet prefix."
       }
     },
+    "subnetPrefixRS": {
+      "type": "string",
+      "metadata": {
+        "description": "Recovery Services VNET subnet prefix."
+      }
+    },
     "dnsServers": {
       "type": "array",
       "metadata": {
@@ -319,6 +325,7 @@
     "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
     "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
     "vdSubnetName": "[concat(variables('leftPrefix'), 'SNT-VD-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "rsSubnetName": "[concat(variables('leftPrefix'), 'SNT-RS-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
     "subnets": [
       {
         "name": "GatewaySubnet",
@@ -366,7 +373,7 @@
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
-        "privateEndpoints": true
+        "privateEndpoints": false
       },
       {
         "name": "[variables('vdSubnetName')]",
@@ -375,6 +382,14 @@
         "udr": true,
         "serviceEndpoints": true,
         "privateEndpoints": false
+      },
+      {
+        "name": "[variables('rsSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixRS')]",
+        "nsg": false,
+        "udr": false,
+        "serviceEndpoints": false,
+        "privateEndpoints": true
       }
     ],
     "copy": [
