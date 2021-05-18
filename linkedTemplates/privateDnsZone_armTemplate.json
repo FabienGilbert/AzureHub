@@ -35,6 +35,13 @@
       },
       "defaultValue": false
     },
+    "aRecords": {
+      "type": "array",
+      "metadata": {
+        "description": "Array of A records"
+      },
+      "defaultValue": []
+    },
     "applicationTag": {
       "type": "string",
       "metadata": {
@@ -48,7 +55,7 @@
       }
     }
   },
-  "variables": {    
+  "variables": {
     "Tags": {
       "Component": "Private DNS Zone",
       "Application": "[parameters('applicationTag')]",
@@ -67,8 +74,8 @@
       }
     },
     {
-      "name": "[concat(parameters('zoneName'), '/', parameters('allowedVnetName'))]",
       "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "name": "[concat(parameters('zoneName'), '/', parameters('allowedVnetName'))]",
       "location": "global",
       "dependsOn": [
         "[parameters('zoneName')]"
@@ -79,6 +86,25 @@
           "id": "[resourceId(parameters('allowedVnetSubId'), parameters('allowedVnetRgp'), 'Microsoft.Network/virtualNetworks', parameters('allowedVnetName'))]"
         },
         "registrationEnabled": "[parameters('dnsRegistrationEnabled')]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateDnsZones/A",
+      "name": "[concat(parameters('zoneName'), '/A/', parameters('aRecords')[copyIndex('aLoop')].name)]",
+      "condition": "[not(equals(parameters('aRecords'), json('[]')))]",
+      "apiVersion": "2018-09-01",
+      "copy": {
+        "count": "[length(parameters('aRecords'))]",
+        "name": "aLoop"
+      },
+      "properties": {
+        "metadata": {},
+        "ttl": "[parameters('aRecords')[copyIndex('aLoop')].ttl]",
+        "aRecords": [
+          {
+            "ipv4Address": "[parameters('aRecords')[copyIndex('aLoop')].ipv4Address]"
+          }
+        ]
       }
     }
   ]
