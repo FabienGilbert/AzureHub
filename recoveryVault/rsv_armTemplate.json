@@ -70,7 +70,15 @@
                 "AddonAzureBackupAlerts",
                 "AddonAzureBackupPolicy",
                 "AddonAzureBackupStorage",
-                "AddonAzureBackupProtectedInstance"
+                "AddonAzureBackupProtectedInstance",
+                "AzureBackupReport",
+                "AzureSiteRecoveryJobs",
+                "AzureSiteRecoveryEvents",
+                "AzureSiteRecoveryReplicatedItems",
+                "AzureSiteRecoveryReplicationStats",
+                "AzureSiteRecoveryRecoveryPoints",
+                "AzureSiteRecoveryReplicationDataUploadRate",
+                "AzureSiteRecoveryProtectedDiskDataChurn"
             ]
         },
         "identity": {
