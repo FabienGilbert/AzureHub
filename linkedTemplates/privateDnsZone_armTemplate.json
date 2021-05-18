@@ -93,6 +93,9 @@
       "name": "[concat(parameters('zoneName'), '/', parameters('aRecords')[copyIndex('aLoop')].name)]",
       "condition": "[not(equals(parameters('aRecords'), json('[]')))]",
       "apiVersion": "2018-09-01",
+      "dependsOn": [
+        "[parameters('zoneName')]"
+      ],
       "copy": {
         "count": "[length(parameters('aRecords'))]",
         "name": "aLoop"
