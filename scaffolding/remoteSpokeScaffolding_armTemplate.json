@@ -228,6 +228,7 @@
     "jumpRgp": "[concat(variables('leftPrefix'),'JUMP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "dnnRgp": "[concat(variables('leftPrefix'),'DNN-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "funcRgp": "[concat(variables('leftPrefix'),'FUNC-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "rsvRgp": "[concat(variables('leftPrefix'),'RSV-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "resourceGroups": [
       {
         "name": "[variables('nsgRgp')]",
@@ -297,6 +298,15 @@
         "location": "[parameters('location')]",
         "tags": {
           "Component": "Resource Group for Azure Functions",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('rsvRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for Azure Recovery Vault Services",
           "Application": "[parameters('applicationTag')]",
           "Environment": "[parameters('environmentTag')]"
         }
