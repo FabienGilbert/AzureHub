@@ -96,63 +96,19 @@
             },
             "defaultValue": "frontend1"
         },
-        "probeName": {
-            "type": "string",
+        "loadBalancedPorts": {            
+            "type": "array",
             "metadata": {
-                "description": "Name of the load balancer probe"
+                "description": "Array of load balanced ports for the load balancing rules"
             },
-            "defaultValue": "httpsTcpProbe"
-        },
-        "probeProtocol": {
-            "type": "string",
-            "metadata": {
-                "description": "Endpoint probe protocol: Tcp, Http or Https"
-            },
-            "defaultValue": "Tcp",
-            "allowedValues": [
-                "Tcp",
-                "Http",
-                "Https"
+            "defaultValue": [
+                {
+                    "name": "HTTPS",                    
+                    "probeProtocol": "tcp",
+                    "ruleProtocol": "tcp",
+                    "port": "443"
+                }
             ]
-        },
-        "probePort": {
-            "type": "string",
-            "metadata": {
-                "description": "Endpoint probe port."
-            },
-            "defaultValue": "443"
-        },
-        "probeRequestPath": {
-            "type": "string",
-            "metadata": {
-                "description": "URI used for requesting health status from the backend node."
-            },
-            "defaultValue": ""
-        },
-        "lbRuleName": {
-            "type": "string",
-            "metadata": {
-                "description": "Load balancer rule name"
-            }
-        },
-        "lbRuleProtocol": {
-            "type": "string",
-            "metadata": {
-                "description": "Load balancer rule protocol"
-            },
-            "allowedValues": [
-                "Udp",
-                "Tcp",
-                "All"
-            ],
-            "defaultValue": "Tcp"
-        },
-        "lbRulePort": {
-            "type": "string",
-            "metadata": {
-                "description": "Load balancer rule frontend port"
-            },
-            "defaultValue": "443"
         },
         "vmNICs": {
             "type": "array",
@@ -241,33 +197,39 @@
                         "name": "[parameters('backendPoolName')]"
                     }
                 ],
-                "probes": [
+                "copy": [
                     {
-                        "properties": {
-                            "protocol": "[parameters('probeProtocol')]",
-                            "port": "[parameters('probePort')]",
-                            "requestPath": "[if(equals(parameters('probeRequestPath'),''), json('null'), parameters('probeRequestPath'))]"
-                        },
-                        "name": "[parameters('probeName')]"
-                    }
-                ],
-                "loadBalancingRules": [
+                        "name": "probes",
+                        "count": "[length(parameters('loadBalancedPorts'))]",
+                        "input": {
+                            "name": "[parameters('loadBalancedPorts')[copyIndex('probes')].name]",
+                            "properties": {
+                                "protocol": "[parameters('loadBalancedPorts')[copyIndex('probes')].probeProtocol]",
+                                "port": "[parameters('loadBalancedPorts')[copyIndex('probes')].port]",
+                                "requestPath": "[if(contains(parameters('loadBalancedPorts')[copyIndex('probes')], 'probeRequestPath'), parameters('loadBalancedPorts')[copyIndex('probes')].probeRequestPath, json('null'))]"
+                            }
+                        }
+                    },
                     {
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('frontEndName'))]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
-                            },
-                            "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/probes/', parameters('probeName'))]"
-                            },
-                            "protocol": "[parameters('lbRuleProtocol')]",
-                            "frontendPort": "[parameters('lbRulePort')]",
-                            "backendPort": "[parameters('lbRulePort')]"
-                        },
-                        "name": "[parameters('lbRuleName')]"
+                        "name": "loadBalancingRules",
+                        "count": "[length(parameters('loadBalancedPorts'))]",
+                        "input": {
+                            "name": "[parameters('loadBalancedPorts')[copyIndex('loadBalancingRules')].name]",
+                            "properties": {
+                                "frontendIPConfiguration": {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/frontendIpConfigurations/', parameters('frontEndName'))]"
+                                },
+                                "backendAddressPool": {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/backendAddressPools/', parameters('backendPoolName'))]"
+                                },
+                                "probe": {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('name')), '/probes/', parameters('loadBalancedPorts')[copyIndex('loadBalancingRules')].name)]"
+                                },
+                                "protocol": "[parameters('loadBalancedPorts')[copyIndex('loadBalancingRules')].ruleProtocol]",
+                                "frontendPort": "[parameters('loadBalancedPorts')[copyIndex('loadBalancingRules')].port]",
+                                "backendPort": "[parameters('loadBalancedPorts')[copyIndex('loadBalancingRules')].port]"
+                            }
+                        }
                     }
                 ]
             }
