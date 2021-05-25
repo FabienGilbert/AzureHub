@@ -38,6 +38,17 @@
       },
       "tags": {
           "type": "object"
+      },
+      "CollectW3CIISLogs": {
+        "type": "string",
+        "metadata": {
+          "description": "Collect W3C IIS Logs"
+        },
+        "defaultValue": "OnPremiseEnabled",
+        "allowedValues": [
+          "OnPremiseEnabled",
+          "OnPremiseDisabled"
+        ]
       }
     },
     "variables": {},
@@ -134,7 +145,7 @@
             ],
             "kind": "IISLogs",
             "properties": {
-              "state": "OnPremiseEnabled"
+              "state": "[parameters('CollectW3CIISLogs')]"
             }
           },
           {
