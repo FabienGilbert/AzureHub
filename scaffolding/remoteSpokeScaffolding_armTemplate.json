@@ -234,6 +234,7 @@
     "jumpRgp": "[concat(variables('leftPrefix'),'JUMP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "dnnRgp": "[concat(variables('leftPrefix'),'DNN-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "funcRgp": "[concat(variables('leftPrefix'),'FUNC-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
+    "appRgp": "[concat(variables('leftPrefix'),'APP-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "rsvRgp": "[concat(variables('leftPrefix'),'RSV-RGP-',parameters('SubscriptionOrdinalPrefix'))]",
     "resourceGroups": [
       {
@@ -304,6 +305,15 @@
         "location": "[parameters('location')]",
         "tags": {
           "Component": "Resource Group for Azure Functions",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "name": "[variables('appRgp')]",
+        "location": "[parameters('location')]",
+        "tags": {
+          "Component": "Resource Group for application resources",
           "Application": "[parameters('applicationTag')]",
           "Environment": "[parameters('environmentTag')]"
         }
@@ -547,7 +557,7 @@
         }
       },
       {
-        "resourceGroup": "[variables('rsvRgp')]",
+        "resourceGroup": "[variables('appRgp')]",
         "name": "[variables('asrStoreName')]",
         "sku": "Standard_LRS",
         "tier": "Hot",
