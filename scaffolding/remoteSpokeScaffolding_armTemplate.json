@@ -320,6 +320,8 @@
     ],
     "logWksName": "[concat(parameters('EnterprisePrefix'), '-', parameters('RegionPrefix'), '-', parameters('EnvironmentPrefix'), '-','LOGWKS-',parameters('SubscriptionOrdinalPrefix'))]",
     "nsgStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'nsgstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
+    "autoStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'autostor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
+    "asrStoreName": "[concat(toLower(parameters('EnterprisePrefix')), toLower(parameters('RegionPrefix')), toLower(parameters('EnvironmentPrefix')), 'asrstor', toLower(parameters('SubscriptionOrdinalPrefix')), '01')]",
     "firewallSubnetName": "AzureFirewallSubnet",
     "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
     "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
@@ -455,6 +457,13 @@
         "VnetName": "[variables('vnetName')]",
         "VnetSubnet": "[variables('vdSubnetName')]",
         "action": "allow"
+      },
+      {
+        "VnetSubscriptionId": "[parameters('subscriptionId')]",
+        "VnetResourceGroup": "[variables('netRgp')]",
+        "VnetName": "[variables('vnetName')]",
+        "VnetSubnet": "[variables('rsSubnetName')]",
+        "action": "allow"
       }
     ],
     "keyVaultAccessPolicy": [
@@ -520,6 +529,32 @@
         "virtualNetworkAcls": "[variables('virtualNetworkAcls')]",
         "tags": {
           "Component": "Storage account for NSG Flow Logs",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "resourceGroup": "[variables('autoRgp')]",
+        "name": "[variables('autoStoreName')]",
+        "sku": "Standard_LRS",
+        "tier": "Cool",
+        "networkAclDefaultAction": "deny",
+        "virtualNetworkAcls": "[variables('virtualNetworkAcls')]",
+        "tags": {
+          "Component": "Storage account for automation-related purposes",
+          "Application": "[parameters('applicationTag')]",
+          "Environment": "[parameters('environmentTag')]"
+        }
+      },
+      {
+        "resourceGroup": "[variables('rsvRgp')]",
+        "name": "[variables('asrStoreName')]",
+        "sku": "Standard_LRS",
+        "tier": "Hot",
+        "networkAclDefaultAction": "deny",
+        "virtualNetworkAcls": "[variables('virtualNetworkAcls')]",
+        "tags": {
+          "Component": "Storage account for ASR replication cache",
           "Application": "[parameters('applicationTag')]",
           "Environment": "[parameters('environmentTag')]"
         }
