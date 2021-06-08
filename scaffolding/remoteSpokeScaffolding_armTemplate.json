@@ -400,7 +400,7 @@
         "ipPrefix": "[parameters('subnetPrefixRS')]",
         "nsg": false,
         "udr": false,
-        "serviceEndpoints": false,
+        "serviceEndpoints": true,
         "privateEndpoints": true
       }
     ],
