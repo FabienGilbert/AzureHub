@@ -52,7 +52,7 @@ else { Write-Output " `tconfig does not yet exist"; $importConf = $true }
 if($importConf){
     Write-Output ("Importing state configuration name " + [char]34 + $configName + [char]34 + " path " + [char]34 + $ConfigFilePath + [char]34 + " to automation account...")
     $stateConf = Import-AzAutomationDscConfiguration -ResourceGroupName $autoAccount.ResourceGroupName -AutomationAccountName $autoAccount.AutomationAccountName  -SourcePath $ConfigFilePath -Published -Force
-    if ($stateConf.State -eq "Published") { Write-Output ("`tImport completed with state: " + $stateConf.State) }
+    if ($stateConf.Name -eq $configName) { Write-Output ("`tImport completed with state: " + $stateConf.State) }
     else { Write-Error -Message ("Import of state configuration " + [char]34 + $ConfigFilePath + [char]34 + " completed with status: " + $stateConf.State); exit }
 }
 ###############################
