@@ -13,9 +13,9 @@ Establish Azure DevOps Service Connections to the desired Azure Subscription(s).
 OR
 
 - For more control, create the service connections manually:
-    2. Create the Azure App Registration and Service Principal using script [newAppRegistration.ps1]('AzureAD\appRegistrations\newAppRegistration.ps1').
-    3. Create desired RBAC assignments for the Service Principal.
-    4. Create the DevOps service connection using the "Service principal (manual)" option. You will need the App Key created in #1.
+    1. Create the Azure App Registration and Service Principal using script [newAppRegistration.ps1](/AzureAD/appRegistrations/newAppRegistration.ps1).
+    2. Create desired RBAC assignments for the Service Principal.
+    3. Create the DevOps service connection using the "Service principal (manual)" option. You will need the App Key created in #1.
 
 ## Scaffolding
 
