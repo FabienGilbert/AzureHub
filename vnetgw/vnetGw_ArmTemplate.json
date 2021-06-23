@@ -29,7 +29,8 @@
       "type": "string",
       "metadata": {
         "description": "Arbitrary name for the Azure Virtual Network Resource Group"
-      }
+      },
+      "defaultValue": "[resourceGroup().name]"
     },
     "VNETName": {
       "type": "string",
