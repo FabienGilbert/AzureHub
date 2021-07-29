@@ -140,11 +140,12 @@
             "defaultValue": "http",
             "allowedValues": [ "http", "https" ]
         },
-        "backendHostname": {
+        "httpSettingbackendHostname": {
             "type": "string",
             "metadata": {
-                "description": "Hostname to probe the backend with (must match webserver binding's hostname)"
-            }
+                "description": "Hostname configured in the http setting (must match webserver binding's hostname)"
+            },
+            "defaultValue": ""
         },
         "probeName": {
             "type": "string",
@@ -152,6 +153,12 @@
                 "description": "Probe name"
             },
             "defaultValue": "backendHealthProbe"
+        },
+        "probeBackendHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostname to probe the backend with (must match webserver binding's hostname)"
+            }
         },
         "privateListenername": {
             "type": "string",
@@ -315,7 +322,8 @@
                             "Protocol": "[parameters('backendProtocol')]",
                             "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",                            
                             "affinityCookieName": "[parameters('affinityCookieName')]",
-                            "pickHostNameFromBackendAddress": true,
+                            "hostName": "[if(equals(parameters('httpSettingbackendHostname'), ''), json('null'), parameters('httpSettingbackendHostname'))]",
+                            "pickHostNameFromBackendAddress": "[if(equals(parameters('httpSettingbackendHostname'), ''), json('true'), json('false'))]",
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
                             },
@@ -421,7 +429,7 @@
                             "timeout": 30,
                             "unhealthyThreshold": 3,
                             "pickHostNameFromBackendHttpSettings": false,
-                            "host": "[parameters('backendHostname')]"
+                            "host": "[parameters('probeBackendHostname')]"
                         }
                     }
                 ]
