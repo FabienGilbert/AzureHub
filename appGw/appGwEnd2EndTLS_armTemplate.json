@@ -111,19 +111,18 @@
                 "description": "Location for all resources."
             }
         },
+        "backendSites": {
+            "type": "array",
+            "metadata": {
+                "description": "Backend Http Settings Collection"
+            }
+        },
         "backendAddressPoolName": {
             "type": "string",
             "metadata": {
                 "description": "Name of the backend address pool"
             },
             "defaultValue": "appGatewayBackendPool"
-        },
-        "backendHttpSettingName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the backend http settings"
-            },
-            "defaultValue": "appGatewayBackendHttpSettings"
         },
         "backendPort": {
             "type": "int",
@@ -139,26 +138,6 @@
             },
             "defaultValue": "http",
             "allowedValues": [ "http", "https" ]
-        },
-        "httpSettingbackendHostname": {
-            "type": "string",
-            "metadata": {
-                "description": "Hostname configured in the http setting (must match webserver binding's hostname)"
-            },
-            "defaultValue": ""
-        },
-        "probeName": {
-            "type": "string",
-            "metadata": {
-                "description": "Probe name"
-            },
-            "defaultValue": "backendHealthProbe"
-        },
-        "probeBackendHostname": {
-            "type": "string",
-            "metadata": {
-                "description": "Hostname to probe the backend with (must match webserver binding's hostname)"
-            }
         },
         "privateListenername": {
             "type": "string",
@@ -314,88 +293,6 @@
                         }
                     }
                 ],
-                "backendHttpSettingsCollection": [
-                    {
-                        "name": "[parameters('backendHttpSettingName')]",
-                        "properties": {
-                            "Port": "[parameters('backendPort')]",
-                            "Protocol": "[parameters('backendProtocol')]",
-                            "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",                            
-                            "affinityCookieName": "[parameters('affinityCookieName')]",
-                            "hostName": "[parameters('httpSettingbackendHostname')]",
-                            "pickHostNameFromBackendAddress": "[if(equals(parameters('httpSettingbackendHostname'), ''), json('true'), json('false'))]",
-                            "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
-                            },
-                            "trustedRootCertificates": [
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/trustedRootCertificates/', parameters('trustedRootCaCertName'))]"
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "httpListeners": [
-                    {
-                        "name": "[parameters('privateListenerName')]",
-                        "properties": {
-                            "FrontendIpConfiguration": {
-                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/privateIpFrontend')]"
-                            },
-                            "FrontendPort": {
-                                "Id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/privateFrontendPort')]"
-                            },
-                            "Protocol": "Http"
-                        }
-                    },
-                    {
-                        "name": "[parameters('publicListenerName')]",
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/publicIpFrontend')]"
-                            },
-                            "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/publicFrontendPort')]"
-                            },
-                            "protocol": "Https",
-                            "sslCertificate": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
-                            }
-                        }
-                    }
-                ],
-                "requestRoutingRules": [
-                    {
-                        "Name": "private",
-                        "properties": {
-                            "RuleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/', parameters('privateListenerName'))]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/', parameters('backendAddressPoolName'))]"
-                            },
-                            "backendHttpSettings": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
-                            }
-                        }
-                    },
-                    {
-                        "Name": "public",
-                        "properties": {
-                            "RuleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/', parameters('publicListenerName'))]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/', parameters('backendAddressPoolName'))]"
-                            },
-                            "backendHttpSettings": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
-                            }
-                        }
-                    }
-                ],
                 "enableHttp2": "[parameters('enableHttp2')]",
                 "sslCertificates": [
                     {
@@ -413,23 +310,89 @@
                         }
                     }
                 ],
-                "probes": [
+                "copy": [
                     {
-                        "name": "[parameters('probeName')]",
-                        "properties": {
-                            "backendHttpSettings": [
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendHttpSettingName'))]"
+                        "name": "backendHttpSettingsCollection",
+                        "count": "[length(parameters('backendSites'))]",
+                        "input": {
+                            "name": "[concat(parameters('backendSites')[copyIndex('backendHttpSettingsCollection')].siteName, 'BackendHttpBinding')]",
+                            "properties": {
+                                "Port": "[parameters('backendPort')]",
+                                "Protocol": "[parameters('backendProtocol')]",
+                                "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",
+                                "affinityCookieName": "[parameters('affinityCookieName')]",
+                                "hostName": "[parameters('backendSites')[copyIndex('backendHttpSettingsCollection')].hostName]",
+                                "probe": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('backendSites')[copyIndex('backendHttpSettingsCollection')].siteName, 'Probe')]"
+                                },
+                                "trustedRootCertificates": [
+                                    {
+                                        "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/trustedRootCertificates/', parameters('trustedRootCaCertName'))]"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "probes",
+                        "count": "[length(parameters('backendSites'))]",
+                        "input": {
+                            "name": "[concat(parameters('backendSites')[copyIndex('probes')].siteName, 'Probe')]",
+                            "properties": {
+                                "backendHttpSettings": [
+                                    {
+                                        "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendSites')[copyIndex('probes')].siteName, 'BackendHttpBinding')]"
+                                    }
+                                ],
+                                "interval": 30,
+                                "minServers": 0,
+                                "path": "/",
+                                "protocol": "[parameters('backendProtocol')]",
+                                "timeout": 30,
+                                "unhealthyThreshold": 3,
+                                "pickHostNameFromBackendHttpSettings": false,
+                                "host": "[parameters('backendSites')[copyIndex('probes')].hostName]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "httpListeners",
+                        "count": "[length(parameters('backendSites'))]",
+                        "input": {
+                            "name": "[concat(parameters('backendSites')[copyIndex('httpListeners')].siteName, 'PublicListener')]",
+                            "properties": {
+                                "frontendIPConfiguration": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/publicIpFrontend')]"
+                                },
+                                "frontendPort": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/publicFrontendPort')]"
+                                },
+                                "protocol": "Https",
+                                "sslCertificate": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/', parameters('sslCertificateName'))]"
+                                },
+                                "hostName": "[parameters('backendSites')[copyIndex('httpListeners')].hostName]",
+                                "requireServerNameIndication": true
+                            }
+                        }
+                    },
+                    {
+                        "name": "requestRoutingRules",
+                        "count": "[length(parameters('backendSites'))]",
+                        "input": {
+                            "name": "[concat(parameters('backendSites')[copyIndex('requestRoutingRules')].siteName, 'RoutingRule')]",
+                            "properties": {
+                                "RuleType": "Basic",
+                                "httpListener": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/', parameters('backendSites')[copyIndex('requestRoutingRules')].siteName, 'PublicListener')]"
+                                },
+                                "backendAddressPool": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/', parameters('backendAddressPoolName'))]"
+                                },
+                                "backendHttpSettings": {
+                                    "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/', parameters('backendSites')[copyIndex('requestRoutingRules')].siteName, 'BackendHttpBinding')]"
                                 }
-                            ],
-                            "interval": 30,
-                            "minServers": 0,
-                            "path": "/",
-                            "protocol": "[parameters('backendProtocol')]",
-                            "timeout": 30,
-                            "unhealthyThreshold": 3,
-                            "pickHostNameFromBackendHttpSettings": false,
-                            "host": "[parameters('probeBackendHostname')]"
+                            }
                         }
                     }
                 ]
