@@ -315,7 +315,7 @@
                             "Protocol": "[parameters('backendProtocol')]",
                             "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",                            
                             "affinityCookieName": "[parameters('affinityCookieName')]",
-                            "hostName": "[parameters('backendHostname')]",
+                            "pickHostNameFromBackendAddress": true,
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
                             },
