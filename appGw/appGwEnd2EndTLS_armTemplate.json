@@ -417,7 +417,7 @@
                             "interval": 30,
                             "minServers": 0,
                             "path": "/",
-                            "protocol": "Http",
+                            "protocol": "[parameters('backendProtocol')]",
                             "timeout": 30,
                             "unhealthyThreshold": 3,
                             "pickHostNameFromBackendHttpSettings": false,
