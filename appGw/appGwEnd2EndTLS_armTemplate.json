@@ -322,6 +322,7 @@
                             "Protocol": "[parameters('backendProtocol')]",
                             "CookieBasedAffinity": "[parameters('cookieBasedAffinity')]",                            
                             "affinityCookieName": "[parameters('affinityCookieName')]",
+                            "hostName": "[parameters('httpSettingbackendHostname')]",
                             "pickHostNameFromBackendAddress": "[if(equals(parameters('httpSettingbackendHostname'), ''), json('true'), json('false'))]",
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/', parameters('probeName'))]"
