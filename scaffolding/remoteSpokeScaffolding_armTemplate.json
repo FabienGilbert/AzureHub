@@ -336,7 +336,7 @@
     "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
     "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
     "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
-    "vdSubnetName": "[concat(variables('leftPrefix'), 'SNT-VD-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "vdSubnetName": "[concat(variables('leftPrefix'), 'SNT-VD-', replace(parameters('subnetPrefixVD'), '/', '_'))]",
     "rsSubnetName": "[concat(variables('leftPrefix'), 'SNT-RS-', replace(parameters('subnetPrefixRS'), '/', '_'))]",
     "subnets": [
       {
