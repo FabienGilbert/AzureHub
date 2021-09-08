@@ -29,6 +29,7 @@
       "allowedValues": [
         "sites",
         "blob",
+        "file",
         "sqlServer",
         "DSCAndHybridWorker",
         "Webhook",
@@ -90,7 +91,7 @@
       "name": "[parameters('privateEndpointName')]",
       "type": "Microsoft.Network/privateEndpoints",
       "location": "[parameters('location')]",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2021-02-01",
       "tags": "[parameters('tags')]",
       "properties": {
         "subnet": {
@@ -110,7 +111,7 @@
     {
       "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
       "condition": "[not(equals(parameters('privateDnsZoneName'), ''))]",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2021-02-01",
       "name": "[concat(parameters('privateEndpointName'),'/mydnsgroupname')]",
       "location": "[parameters('location')]",
       "dependsOn": [
