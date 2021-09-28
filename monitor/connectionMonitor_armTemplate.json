@@ -1,0 +1,96 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Deployment location"
+      },
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Connection Monitor Name"
+      }
+    },
+    "sourceVmResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Source Virtual Machine Resource Group"
+      }
+    },
+    "sourceVmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Source Virtual Machine Name"
+      }
+    },
+    "destinationVmResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Destination Virtual Machine ResourceGroup"
+      },
+      "defaultValue": ""
+    },
+    "destinationVmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Destination Virtual Machine Name"
+      },
+      "defaultValue": ""
+    },
+    "destinationIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Destination IP Address"
+      },
+      "defaultValue": ""
+    },
+    "destinationPort": {
+      "type": "string",
+      "metadata": {
+        "description": "Destination port"
+      }
+    },
+    "monitoringIntervalInSeconds": {
+      "type": "int",
+      "metadata": {
+        "description": "Probing interval in seconds"
+      },
+      "defaultValue": 60
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Resource tags"
+      },
+      "defaultValue": {}
+    }
+  },
+  "variables": {
+    "networkWatcherName": "[concat('NetworkWatcher_',parameters('location'))]"
+  },
+  "resources": [
+    {
+      "name": "[concat(variables('networkWatcherName'), '/', parameters('name'))]",
+      "type": "Microsoft.Network/networkWatchers/connectionMonitors",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "source": {
+          "resourceId": "[resourceId(parameters('sourceVmResourceGroup'), 'Microsoft.Compute/virtualMachines', parameters('sourceVmName'))]"
+        },
+        "destination": {
+          "resourceId": "[if(equals(parameters('destinationVmName'), ''), json('null'), resourceId(parameters('destinationVmResourceGroup'), 'Microsoft.Compute/virtualMachines', parameters('destinationVmName')))]",
+          "address": "[if(equals(parameters('destinationIpAddress'), ''), json('null'), parameters('destinationIpAddress'))]",
+          "port": "[parameters('destinationPort')]"
+        },
+        "autoStart": true,
+        "monitoringIntervalInSeconds": "[parameters('monitoringIntervalInSeconds')]"
+      }
+    }
+  ]
+}
