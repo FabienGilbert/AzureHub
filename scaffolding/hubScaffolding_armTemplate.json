@@ -122,6 +122,12 @@
         "description": "App VNET subnet prefix."
       }
     },
+    "subnetPrefixAK": {
+      "type": "string",
+      "metadata": {
+        "description": "Key Vault VNET subnet prefix."
+      }
+    },
     "dnsServers": {
       "type": "array",
       "metadata": {
@@ -391,6 +397,7 @@
     "utilSubnetName": "[concat(variables('leftPrefix'), 'SNT-UT-', replace(parameters('subnetPrefixUT'), '/', '_'))]",
     "dbSubnetName": "[concat(variables('leftPrefix'), 'SNT-DB-', replace(parameters('subnetPrefixDB'), '/', '_'))]",
     "appSubnetName": "[concat(variables('leftPrefix'), 'SNT-AP-', replace(parameters('subnetPrefixAP'), '/', '_'))]",
+    "akvSubnetName": "[concat(variables('leftPrefix'), 'SNT-AK-', replace(parameters('subnetPrefixAK'), '/', '_'))]",
     "subnets": [
       {
         "name": "GatewaySubnet",
@@ -470,6 +477,14 @@
         "nsg": true,
         "udr": true,
         "serviceEndpoints": true,
+        "privateEndpoints": false
+      },
+      {
+        "name": "[variables('akvSubnetName')]",
+        "ipPrefix": "[parameters('subnetPrefixAK')]",
+        "nsg": true,
+        "udr": true,
+        "serviceEndpoints": false,
         "privateEndpoints": false
       }
     ],
